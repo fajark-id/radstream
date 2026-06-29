@@ -307,7 +307,7 @@
 <audio id="live-audio" preload="none"></audio>
 
 <script>
-    const WORKER_URL = "https://radstream-api.fadjark-ur.workers.dev"; // Ganti dengan URL Worker Anda!
+    const WORKER_URL = "https://radstream-api.fadjark-ur.workers.dev"; 
     const audio = document.getElementById('live-audio');
     const playBtn = document.getElementById('play-master-btn');
     const miniPlayBtn = document.getElementById('mini-playpause-btn');
@@ -318,32 +318,31 @@
 
     let isPlaying = true; 
     let isStationLoaded = false;
-    let currentStationId = ""; // VAR PENTING: Untuk tracking ID stasiun
+    let currentStationId = ""; 
 
-    // FUNGSI METADATA (STEP 1)
-        async function openMetadata() {
-            const modal = document.getElementById('metadata-modal');
-            modal.style.display = 'flex';
+    // FUNGSI METADATA (DIPERBAIKI)
+    async function openMetadata() {
+        const modal = document.getElementById('metadata-modal');
+        modal.style.display = 'flex';
     
-            // Tampilkan loading
-            document.getElementById('modal-title').textContent = "Mengambil data...";
-            document.getElementById('modal-artist').textContent = "Mohon tunggu...";
+        // Tampilkan loading
+        document.getElementById('modal-title').textContent = "Mengambil data...";
+        document.getElementById('modal-artist').textContent = "Mohon tunggu...";
 
-            try {
-                // Panggil Worker kita
-                const response = await fetch(`${WORKER_URL}?id=${currentStationId}`);
-                const data = await response.json();
+        try {
+            // Panggil Worker kita
+            const response = await fetch(`${WORKER_URL}?id=${currentStationId}`);
+            const data = await response.json();
 
-                // Update Modal dengan data dari Worker
-                document.getElementById('modal-title').textContent = data.title;
-                document.getElementById('modal-artist').textContent = data.artist;
-                document.getElementById('modal-cover').src = data.cover;
+            // Update Modal dengan data dari Worker
+            document.getElementById('modal-title').textContent = data.title;
+            document.getElementById('modal-artist').textContent = data.artist;
+            document.getElementById('modal-cover').src = data.cover;
         
-            } catch (err) {
-                document.getElementById('modal-title').textContent = "Gagal memuat";
-                document.getElementById('modal-artist').textContent = "Periksa koneksi Worker Anda";
-                console.error("Error fetching metadata:", err);
-            }
+        } catch (err) {
+            document.getElementById('modal-title').textContent = "Gagal memuat";
+            document.getElementById('modal-artist').textContent = "Periksa koneksi Worker Anda";
+            console.error("Error fetching metadata:", err);
         }
     }
 
@@ -392,7 +391,6 @@
             listWadah.innerHTML = '';
             
             data.forEach(radio => {
-                // Di sini kita kirim radio.id ke fungsi openPlayer
                 listWadah.innerHTML += `
                     <div class="station-item" onclick="openPlayer('${radio.id}', '${radio.name}', '${radio.city}, ${radio.province}', '${radio.logo}', '${radio.stream_url}')">
                         <img class="station-img" src="${radio.logo}">
@@ -408,7 +406,7 @@
 
     function openPlayer(id, name, loc, logo, url) {
         isStationLoaded = true;
-        currentStationId = id; // Menyimpan ID saat stasiun dipilih
+        currentStationId = id; 
 
         document.getElementById('p-title').textContent = name;
         document.getElementById('p-sub').textContent = loc;
