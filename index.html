@@ -366,32 +366,49 @@
             const metaImg = document.getElementById('meta-img');
             document.getElementById('meta-title').textContent = "Mengambil data...";
             document.getElementById('meta-artist').textContent = "Mohon tunggu...";
-            
-            try {
-                // Mengirim currentStationId ke Worker secara dinamis
-                const response = await fetch(`${WORKER_URL}?id=${currentStationId}`);
-                const data = await response.json();
-    
-                if(data.title) {
-                    document.getElementById('meta-title').textContent = data.title;
-                    document.getElementById('meta-artist').textContent = data.artist;
-                    
-                    if (data.cover && data.cover.trim() !== "") {
-                        metaImg.src = data.cover;
-                        metaImg.style.display = 'block';
-                    } else {
-                        metaImg.style.display = 'none'; 
-                    }
+        
+            // JIKA STASIUN ADALAH FALLBACK (Seperti Mustang / Jak FM)
+            if (!currentApiUrl || currentApiType === "fallback" || currentApiType === "undefined") {
+                document.getElementById('meta-title').textContent = document.getElementById('p-title').textContent; // Nama Radio
+                document.getElementById('meta-artist').textContent = "Sedang Mengudara Live"; 
+                metaImg.src = document.getElementById('p-img').src; // Pakai Logo Radio sebagai cover
+                metaImg.style.display = 'block';
                 
-                    playerCard.classList.add('view-meta-active');
-                    musicBtn.querySelector('svg').classList.add('svg-active');
-                    isMetadataView = true;
+                playerCard.classList.add('view-meta-active');
+                musicBtn.querySelector('svg').classList.add('svg-active');
+                isMetadataView = true;
+                return;
+            }
+
+            // JIKA STASIUN PUNYA API (Swara Semarang, Gen, Campursari, Prambors)
+            try {
+                const response = await fetch(`${WORKER_URL}?api_url=${encodeURIComponent(currentApiUrl)}&api_type=${currentApiType}`);
+                const data = await response.json();
+
+                document.getElementById('meta-title').textContent = data.title || "Live Stream";
+                document.getElementById('meta-artist').textContent = data.artist || "Unknown Artist";
+            
+                if (data.cover && data.cover.trim() !== "") {
+                    metaImg.src = data.cover;
+                    metaImg.style.display = 'block';
                 } else {
-                    alert("Tidak ada info lagu saat ini.");
+                    // Jika iTunes pun tidak menemukan lagunya, pasang Logo Radio asal sebagai cover pengganti
+                    metaImg.src = document.getElementById('p-img').src;
+                    metaImg.style.display = 'block';
                 }
+            
+                playerCard.classList.add('view-meta-active');
+                musicBtn.querySelector('svg').classList.add('svg-active');
+                isMetadataView = true;
+
             } catch (err) {
-                alert("Gagal memuat metadata.");
                 console.error("Error fetching metadata:", err);
+                document.getElementById('meta-title').textContent = "Live Stream";
+                document.getElementById('meta-artist').textContent = document.getElementById('p-title').textContent;
+                metaImg.src = document.getElementById('p-img').src;
+                metaImg.style.display = 'block';
+                playerCard.classList.add('view-meta-active');
+                isMetadataView = true;
             }
         } else {
             playerCard.classList.remove('view-meta-active');
