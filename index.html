@@ -202,7 +202,6 @@
             overflow: hidden; 
         }
 
-        /* REVERTED TO LEFT ALIGNMENT */
         .player-card { 
             background: var(--card-bg); 
             border-radius: 24px; 
@@ -277,7 +276,6 @@
         .svg-muted { color: var(--text-muted); }
         .svg-active { color: var(--text-main) !important; }
 
-        /* TOGGLE VIEW LOGIC */
         #view-metadata { display: none; }
         .view-meta-active #view-station { display: none; }
         .view-meta-active #view-metadata { display: block; }
@@ -365,12 +363,12 @@
 
     async function toggleMetadataView() {
         if (!isMetadataView) {
-            // Reset dulu supaya tidak menampilkan cover lama saat loading
             const metaImg = document.getElementById('meta-img');
             document.getElementById('meta-title').textContent = "Mengambil data...";
             document.getElementById('meta-artist').textContent = "Mohon tunggu...";
             
             try {
+                // Mengirim currentStationId ke Worker secara dinamis
                 const response = await fetch(`${WORKER_URL}?id=${currentStationId}`);
                 const data = await response.json();
     
@@ -378,17 +376,12 @@
                     document.getElementById('meta-title').textContent = data.title;
                     document.getElementById('meta-artist').textContent = data.artist;
                     
-                    // --- PERBAIKAN DI SINI ---
-                    // Cek apakah data.cover ada dan tidak kosong
                     if (data.cover && data.cover.trim() !== "") {
                         metaImg.src = data.cover;
-                        metaImg.style.display = 'block'; // Pastikan terlihat
+                        metaImg.style.display = 'block';
                     } else {
-                        // Jika tidak ada cover, sembunyikan gambar atau beri placeholder
-                        // Opsi: Sembunyikan saja agar layout tetap bersih
                         metaImg.style.display = 'none'; 
                     }
-                    // -------------------------
                 
                     playerCard.classList.add('view-meta-active');
                     musicBtn.querySelector('svg').classList.add('svg-active');
