@@ -320,10 +320,30 @@
     let currentStationId = ""; // VAR PENTING: Untuk tracking ID stasiun
 
     // FUNGSI METADATA (STEP 1)
-    function openMetadata() {
-        document.getElementById('metadata-modal').style.display = 'flex';
-        console.log("Mencari data untuk stasiun:", currentStationId);
-        // Nanti kita sambungkan ke Cloudflare di sini
+        async function openMetadata() {
+            const modal = document.getElementById('metadata-modal');
+            modal.style.display = 'flex';
+    
+            // Tampilkan loading
+            document.getElementById('modal-title').textContent = "Mengambil data...";
+            document.getElementById('modal-artist').textContent = "Mohon tunggu...";
+
+            try {
+                // Panggil Worker kita
+                const response = await fetch(`${WORKER_URL}?id=${currentStationId}`);
+                const data = await response.json();
+
+                // Update Modal dengan data dari Worker
+                document.getElementById('modal-title').textContent = data.title;
+                document.getElementById('modal-artist').textContent = data.artist;
+                document.getElementById('modal-cover').src = data.cover;
+        
+            } catch (err) {
+                document.getElementById('modal-title').textContent = "Gagal memuat";
+                document.getElementById('modal-artist').textContent = "Periksa koneksi Worker Anda";
+                console.error("Error fetching metadata:", err);
+            }
+        }
     }
 
     // FUNGSI LOCK SCREEN
