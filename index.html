@@ -365,18 +365,31 @@
 
     async function toggleMetadataView() {
         if (!isMetadataView) {
+            // Reset dulu supaya tidak menampilkan cover lama saat loading
+            const metaImg = document.getElementById('meta-img');
             document.getElementById('meta-title').textContent = "Mengambil data...";
             document.getElementById('meta-artist').textContent = "Mohon tunggu...";
             
             try {
                 const response = await fetch(`${WORKER_URL}?id=${currentStationId}`);
                 const data = await response.json();
-
+    
                 if(data.title) {
                     document.getElementById('meta-title').textContent = data.title;
                     document.getElementById('meta-artist').textContent = data.artist;
-                    document.getElementById('meta-img').src = data.cover;
                     
+                    // --- PERBAIKAN DI SINI ---
+                    // Cek apakah data.cover ada dan tidak kosong
+                    if (data.cover && data.cover.trim() !== "") {
+                        metaImg.src = data.cover;
+                        metaImg.style.display = 'block'; // Pastikan terlihat
+                    } else {
+                        // Jika tidak ada cover, sembunyikan gambar atau beri placeholder
+                        // Opsi: Sembunyikan saja agar layout tetap bersih
+                        metaImg.style.display = 'none'; 
+                    }
+                    // -------------------------
+                
                     playerCard.classList.add('view-meta-active');
                     musicBtn.querySelector('svg').classList.add('svg-active');
                     isMetadataView = true;
