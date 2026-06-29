@@ -3,102 +3,143 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RadStream - Radio Indonesia</title>
+    <title>RadStream</title>
     <style>
-        body { font-family: sans-serif; background: #0f172a; color: white; padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 90vh; margin: 0; }
-        .container { width: 100%; max-width: 400px; text-align: center; }
+        :root {
+            --bg-color: #0b132b;
+            --card-bg: #22385c;
+            --text-main: #ffffff;
+            --text-muted: #94a3b8;
+            --accent: #3b82f6;
+        }
+        body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: var(--bg-color); color: var(--text-main); margin: 0; padding: 20px; display: flex; justify-content: center; }
+        .phone-container { width: 100%; max-width: 390px; min-height: 800px; display: flex; flex-direction: column; position: relative; }
         
-        .radio-card { 
-            background: #1e293b; 
-            padding: 30px 20px; 
-            border-radius: 20px; 
-            box-shadow: 0 10px 25px rgba(0,0,0,0.4);
-        }
+        /* === HALAMAN DAFTAR (2.png) === */
+        .header-title { font-size: 24px; font-weight: bold; margin: 20px 0; }
+        .station-list-card { background: var(--card-bg); border-radius: 20px; padding: 10px 0; display: flex; flex-direction: column; }
+        .station-item { display: flex; align-items: center; padding: 15px 20px; cursor: pointer; border-bottom: 1px solid #2e4a77; }
+        .station-item:last-child { border-bottom: none; }
+        .station-img { width: 60px; height: 60px; border-radius: 12px; object-fit: contain; background: white; padding: 5px; }
+        .station-info { margin-left: 15px; flex: 1; }
+        .station-name { font-size: 18px; font-weight: bold; margin-bottom: 3px; }
+        .station-meta { font-size: 13px; color: var(--text-muted); }
         
-        .status-badge {
-            background: #10b981; color: white; font-size: 11px; font-weight: bold;
-            padding: 4px 12px; border-radius: 20px; display: inline-block; margin-bottom: 20px;
+        /* === FOOTER NAVIGATION === */
+        .footer-nav { display: flex; justify-content: space-between; align-items: center; margin-top: auto; padding: 20px 10px; font-size: 16px; color: var(--text-muted); }
+        .search-icon { font-size: 20px; cursor: pointer; color: var(--text-main); }
+
+        /* === HALAMAN PLAYER FULLSCREEN (1.png) === */
+        .player-view { 
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0; 
+            background: var(--bg-color); z-index: 100; padding: 30px; 
+            display: none; flex-direction: column; align-items: center; justify-content: center;
         }
-
-        /* Perbaikan Logo: Diberi background putih & padding agar teks bernapas */
-        .logo-container { position: relative; width: 140px; height: 140px; margin: 0 auto 15px; }
-        .radio-logo {
-            width: 100%; height: 100%; border-radius: 50%; object-fit: contain;
-            background: white; padding: 10px; box-sizing: border-box;
-            border: 4px solid #3b82f6; transition: transform 0.3s;
-        }
-
-        /* Animasi Berputar jika Radio Play */
-        .playing .radio-logo { animation: putar 4s linear infinite; }
-        @keyframes putar { 100% { transform: rotate(360deg); } }
-
-        h3 { margin: 5px 0; font-size: 22px; }
-        .frequency { color: #3b82f6; font-weight: bold; margin-bottom: 25px; font-size: 14px; }
+        .player-card { background: var(--card-bg); border-radius: 24px; width: 100%; max-width: 340px; padding: 25px; box-sizing: border-box; text-align: left; }
+        .player-img { width: 100%; aspect-ratio: 1; border-radius: 16px; object-fit: contain; background: white; padding: 15px; box-sizing: border-box; margin-bottom: 25px; }
+        .player-title { font-size: 22px; font-weight: bold; margin-bottom: 5px; }
+        .player-sub { font-size: 14px; color: var(--text-muted); margin-bottom: 20px; }
         
-        /* Tombol Play/Pause Custom Bulat Modern */
-        .play-btn {
-            width: 65px; height: 65px; border-radius: 50%; background: #3b82f6; color: white;
-            border: none; font-size: 24px; cursor: pointer; display: inline-flex;
-            align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
-            transition: transform 0.2s, background 0.2s;
-        }
-        .play-btn:hover { transform: scale(1.05); background: #2563eb; }
-        .play-btn:active { transform: scale(0.95); }
+        /* Volume Bar */
+        .volume-container { display: flex; align-items: center; gap: 10px; width: 100%; margin-bottom: 30px; }
+        .volume-bar { flex: 1; height: 4px; background: #475569; border-radius: 2px; position: relative; }
+        .volume-progress { width: 40%; height: 100%; background: var(--text-muted); border-radius: 2px; }
+        .volume-dot { width: 12px; height: 12px; background: var(--text-main); border-radius: 50%; position: absolute; left: 40%; top: -4px; }
+
+        /* Controls */
+        .player-controls { display: flex; justify-content: space-around; align-items: center; width: 100%; padding: 0 10px; }
+        .control-icon { font-size: 22px; color: var(--text-main); cursor: pointer; opacity: 0.8; }
+        .play-master-btn { width: 60px; height: 60px; border-radius: 50%; border: 3px solid var(--text-main); display: flex; align-items: center; justify-content: center; font-size: 24px; cursor: pointer; color: var(--text-main); background: transparent; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h2 style="margin-bottom: 5px; color: #3b82f6;">RadStream 📻</h2>
-    <p style="color: #94a3b8; margin: 0 0 25px 0; font-size: 14px;">Daftar Radio Online Indonesia</p>
+<div class="phone-container" id="main-view">
+    <div class="header-title" id="region-title">Indonesia Station</div>
+    
+    <!-- Wadah Daftar Sesuai Gambar 2.png -->
+    <div class="station-list-card" id="list-wadah"></div>
 
-    <div id="daftar-radio"></div>
+    <div class="footer-nav">
+        <span id="nav-text">Indonesia Station</span>
+        <span class="search-icon">🔍</span>
+    </div>
 </div>
 
-<audio id="audio-player"></audio>
+<!-- Tampilan Player Sesuai Gambar 1.png -->
+<div class="player-view" id="player-screen">
+    <div class="player-card">
+        <!-- Klik gambar untuk kembali ke daftar -->
+        <img class="player-img" id="p-img" src="" alt="" onclick="closePlayer()">
+        <div class="player-title" id="p-title">Nama Radio</div>
+        <div class="player-sub" id="p-sub">Lokasi</div>
+        
+        <div class="volume-container">
+            <span>🔊</span>
+            <div class="volume-bar"><div class="volume-progress"></div><div class="volume-dot"></div></div>
+        </div>
+
+        <div class="player-controls">
+            <span class="control-icon" onclick="closePlayer()">📋</span>
+            <button class="play-master-btn" id="master-play-btn" onclick="togglePlay()">▶</button>
+            <span class="control-icon">🎵</span>
+        </div>
+    </div>
+</div>
+
+<audio id="live-audio"></audio>
 
 <script>
-    const player = document.getElementById('audio-player');
+    const audio = document.getElementById('live-audio');
+    let currentStationUrl = "";
 
+    // Load data JSON
     fetch('indonesia.json')
-        .then(response => response.json())
+        .then(res => res.json())
         .then(data => {
-            const wadah = document.getElementById('daftar-radio');
-            wadah.innerHTML = ''; 
-
+            const listWadah = document.getElementById('list-wadah');
+            listWadah.innerHTML = '';
+            
             data.forEach(radio => {
-                wadah.innerHTML += `
-                    <div class="radio-card" id="card-${radio.id}">
-                        <div class="status-badge">🔴 ONLINE</div>
-                        <div class="logo-container">
-                            <img class="radio-logo" src="${radio.logo}" alt="${radio.name}">
+                listWadah.innerHTML += `
+                    <div class="station-item" onclick="openPlayer('${radio.name}', '${radio.city}, ${radio.province}', '${radio.logo}', '${radio.stream_url}')">
+                        <img class="station-img" src="${radio.logo}">
+                        <div class="station-info">
+                            <div class="station-name">${radio.name}</div>
+                            <div class="station-meta">${radio.city}, Indonesia</div>
+                            <div class="station-meta" style="color: #3b82f6; font-weight: 500; margin-top:2px;">${radio.fm_frequency || '96.9 FM'}</div>
                         </div>
-                        <h3>${radio.name}</h3>
-                        <div class="frequency">${radio.fm_frequency}</div>
-                        
-                        <button class="play-btn" id="btn-${radio.id}" onclick="toggleRadio('${radio.stream_url}', '${radio.id}')">▶</button>
                     </div>
                 `;
             });
         });
 
-    // Logika Play / Pause menggunakan 1 tombol
-    function toggleRadio(url, id) {
-        const card = document.getElementById(`card-${id}`);
-        const btn = document.getElementById(`btn-${id}`);
-
-        if (player.src !== url) {
-            player.src = url;
+    function openPlayer(name, loc, logo, url) {
+        document.getElementById('p-title').textContent = name;
+        document.getElementById('p-sub').textContent = loc;
+        document.getElementById('p-img').src = logo;
+        document.getElementById('player-screen').style.display = 'flex';
+        
+        if(audio.src !== url) {
+            audio.src = url;
+            currentStationUrl = url;
         }
+        audio.play();
+        document.getElementById('master-play-btn').innerHTML = '⏸';
+    }
 
-        if (player.paused) {
-            player.play();
-            card.classList.add('playing'); // Aktifkan animasi berputar
-            btn.innerHTML = '⏸'; // Ganti ikon jadi Pause
+    function closePlayer() {
+        document.getElementById('player-screen').style.display = 'none';
+    }
+
+    function togglePlay() {
+        const btn = document.getElementById('master-play-btn');
+        if (audio.paused) {
+            audio.play();
+            btn.innerHTML = '⏸';
         } else {
-            player.pause();
-            card.classList.remove('playing'); // Hentikan animasi
-            btn.innerHTML = '▶'; // Ganti ikon jadi Play
+            audio.pause();
+            btn.innerHTML = '▶';
         }
     }
 </script>
