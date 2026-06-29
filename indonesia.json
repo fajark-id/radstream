@@ -31,5 +31,27 @@
     "city": "Jakarta",
     "stream_url": "https://wz.mari.co.id:1936/noice_jakfm/jakfm/playlist.m3u8",
     "logo": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSNWTt3SBsV5ddqV2K_wSngQit5G_TGSRyaqA&s?w=150&auto=format&fit=crop&q=60"
+  },
+  {
+    "id": "prambors-fm",
+    "name": "Prambors FM",
+    "fm_frequency": "102.2 FM",
+    "description": "Indonesia #1 Hit Music Station",
+    "genre": "Top 40",
+    "province": "DKI Jakarta",
+    "city": "Jakarta",
+    "stream_url": "http://masima.rastream.com/masima-pramborsjakarta?",
+    "logo": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQUCjkV6_FkSdcHh2K7jekMtDWZ1xfxtSA59w&s?w=150&auto=format&fit=crop&q=60"
+  },
+  {
+    "id": "trax-fm",
+    "name": "Trax FM",
+    "fm_frequency": "101.4 FM",
+    "description": "Hits Yang Kamu Suka",
+    "genre": "Top 40",
+    "province": "DKI Jakarta",
+    "city": "Jakarta",
+    "stream_url": "http://cloudstreaming.mramedia.com:8003/live",
+    "logo": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTgceZHRzNUqVOjx6ZOhdf2dLev5crO7zP2Kg&s?w=150&auto=format&fit=crop&q=60"
   }
 ]
