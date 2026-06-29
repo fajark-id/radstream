@@ -8,7 +8,9 @@
     "province": "Jawa Tengah",
     "city": "Semarang",
     "stream_url": "https://radio-proxy.fadjark-ur.workers.dev/?url=https://server.radioimeldafm.co.id/listen/swarasemarang/swarasemarang",
-    "logo": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS51EvBJDHn50M5um2-Yu6PeRYD0E6cUjBgAA&s?w=150&auto=format&fit=crop&q=60"
+    "logo": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS51EvBJDHn50M5um2-Yu6PeRYD0E6cUjBgAA&s?w=150&auto=format&fit=crop&q=60",
+    "api_type": "azuracast",
+    "api_url": "https://server.radioimeldafm.co.id/api/nowplaying/swarasemarang"
   },
   {
     "id": "880-mustang-fm-jakarta",
@@ -19,7 +21,9 @@
     "province": "DKI Jakarta",
     "city": "Jakarta",
     "stream_url": "https://wz.mari.co.id:1936/web_mustangfm/mustangfm/chunklist_w1520480447.m3u8",
-    "logo": "https://www.mahakax.com/wp-content/uploads/2022/06/logo-mustang.png?w=150&auto=format&fit=crop&q=60"
+    "logo": "https://www.mahakax.com/wp-content/uploads/2022/06/logo-mustang.png?w=150&auto=format&fit=crop&q=60",
+    "api_type": "fallback",
+    "api_url": ""
   },
   {
     "id": "gentara_campursari",
@@ -30,7 +34,9 @@
     "province": "DKI Jakarta",
     "city": "Jakarta",
     "stream_url": "https://radio-proxy.fadjark-ur.workers.dev/?url=https://s1.gntr.net/listen/campursari/campursari892",
-    "logo": "https://www.campursarifm.com/images/logo-square.jpg?w=150&auto=format&fit=crop&q=60"
+    "logo": "https://www.campursarifm.com/images/logo-square.jpg?w=150&auto=format&fit=crop&q=60",
+    "api_type": "azuracast",
+    "api_url": "https://s1.gntr.net/api/nowplaying/campursari892"
   },
   {
     "id": "gen-fm",
@@ -41,7 +47,9 @@
     "province": "DKI Jakarta",
     "city": "Jakarta",
     "stream_url": "https://radio-proxy.fadjark-ur.workers.dev/?url=https://ic.mari.co.id:8443/genfm",
-    "logo": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRowqa5EK6EHniD5t6Ul9lKBd0_NVa4sm7ETw&s?w=150&auto=format&fit=crop&q=60"
+    "logo": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRowqa5EK6EHniD5t6Ul9lKBd0_NVa4sm7ETw&s?w=150&auto=format&fit=crop&q=60",
+    "api_type": "icecast",
+    "api_url": "https://ic.mari.co.id:8443/status-json.xsl"
   },
   {
     "id": "jak-fm",
@@ -52,7 +60,9 @@
     "province": "DKI Jakarta",
     "city": "Jakarta",
     "stream_url": "https://wz.mari.co.id:1936/noice_jakfm/jakfm/playlist.m3u8",
-    "logo": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSNWTt3SBsV5ddqV2K_wSngQit5G_TGSRyaqA&s?w=150&auto=format&fit=crop&q=60"
+    "logo": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSNWTt3SBsV5ddqV2K_wSngQit5G_TGSRyaqA&s?w=150&auto=format&fit=crop&q=60",
+    "api_type": "fallback",
+    "api_url": ""
   },
   {
     "id": "prambors-fm",
@@ -63,6 +73,8 @@
     "province": "DKI Jakarta",
     "city": "Jakarta",
     "stream_url": "https://radio-proxy.fadjark-ur.workers.dev/?url=https://stream.rcs.revma.com/h77wwp48kxcwv",
-    "logo": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQUCjkV6_FkSdcHh2K7jekMtDWZ1xfxtSA59w&s?w=150&auto=format&fit=crop&q=60"
+    "logo": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQUCjkV6_FkSdcHh2K7jekMtDWZ1xfxtSA59w&s?w=150&auto=format&fit=crop&q=60",
+    "api_type": "revma",
+    "api_url": "https://stream.rcs.revma.com/api/v1/live/nowplaying/h77wwp48kxcwv"
   }
 ]
