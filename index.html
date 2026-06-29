@@ -203,8 +203,8 @@
     const playPath = "M8 5v14l11-7z";
     const pausePath = "M6 19h4V5H6v14zm8-14v14h4V5h-4z";
 
-    // STATE UTAMA: Menjadi satu-satunya acuan tampilan UI
-    let isPlaying = false; 
+    // Setel default state ke TRUE karena radio langsung diputar saat stasiun diklik
+    let isPlaying = true; 
 
     function updateSliderBackground(value) {
         volumeSlider.style.background = `linear-gradient(to right, var(--text-main) 0%, var(--text-main) ${value}%, #475569 ${value}%, #475569 100%)`;
@@ -218,12 +218,12 @@
         audio.volume = value / 100;
     });
 
-    // FUNGSI UPDATE UI BERDASARKAN STATE UTAMA
+    // FUNGSI UPDATE UI (IKON)
     function renderPlayerUI() {
         if (isPlaying) {
-            playSvg.setAttribute('d', pausePath);
+            playSvg.setAttribute('d', pausePath); // Jika true -> tampilkan ikon PAUSE
         } else {
-            playSvg.setAttribute('d', playPath);
+            playSvg.setAttribute('d', playPath);  // Jika false -> tampilkan ikon PLAY
         }
     }
 
@@ -256,18 +256,16 @@
         document.getElementById('player-screen').style.display = 'flex';
         document.body.classList.add('player-active');
         
-        // Jika ganti stasiun, reset audio element
         if (audio.src !== url) {
-            audio.load(); // Hentikan buffer streaming sebelumnya
             audio.src = url;
         }
         
-        // Kunci state ke TRUE terlebih dahulu sebelum play
+        // Sesuai idemu: Langsung paksa state ke TRUE (Pause Icon) saat player dibuka
         isPlaying = true;
         renderPlayerUI();
         
         audio.play().catch(err => {
-            console.log("Autoplay dicegah oleh kebijakan iOS Safari.");
+            console.log("Autoplay diblokir browser, membalikkan ikon ke Play.");
             isPlaying = false;
             renderPlayerUI();
         });
@@ -279,23 +277,24 @@
     }
 
     function togglePlay() {
-        if (!isPlaying) {
+        if (isPlaying) {
+            // Jika sedang berputar, matikan dan ubah ikon ke PLAY
+            audio.pause();
+            isPlaying = false;
+            renderPlayerUI();
+        } else {
+            // Jika sedang mati, jalankan dan ubah ikon ke PAUSE
             isPlaying = true;
             renderPlayerUI();
             audio.play().catch(err => {
                 isPlaying = false;
                 renderPlayerUI();
             });
-        } else {
-            audio.pause();
-            isPlaying = false;
-            renderPlayerUI();
         }
     }
 
-    // Penanganan interupsi sistem iOS (seperti saat ada panggilan masuk atau headphone dicabut)
-    audio.addEventListener('abort', () => { isPlaying = false; renderPlayerUI(); });
-    audio.addEventListener('stalled', () => { console.log("Streaming tersendat / buffering..."); });
+    // Menangani kondisi jika audio berhenti karena masalah koneksi internet HP
+    audio.addEventListener('waiting', () => { console.log("Buffering stasiun..."); });
 </script>
 
 </body>
