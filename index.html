@@ -145,19 +145,28 @@
         .player-controls { display: flex; justify-content: space-between; align-items: center; width: 100%; padding: 0 10px; box-sizing: border-box; }
         
         .play-master-btn { 
-            width: 60px; 
-            height: 60px; 
+            width: 65px; 
+            height: 65px; 
             border-radius: 50%; 
             border: 2.5px solid var(--text-main); 
-            display: flex; 
+    
+            /* Gunakan flexbox super center */
+            display: inline-flex; 
             align-items: center; 
             justify-content: center; 
+    
             cursor: pointer; 
             background: transparent; 
             transition: transform 0.1s;
             color: var(--text-main);
-            font-size: 20px; 
-            font-weight: bold;
+    
+            /* Gunakan font-size yang pas dan line-height 0 untuk mematikan padding bawaan font */
+            font-size: 24px; 
+            line-height: 0;
+    
+            /* Menghilangkan default padding/border bawaan browser */
+            padding: 0;
+            box-sizing: border-box;
         }
         .play-master-btn:active { transform: scale(0.95); }
         
@@ -233,13 +242,16 @@
     });
 
     // FUNGSI UPDATE UI MENGGUNAKAN UNICODE TEXT
+    // FUNGSI UPDATE UI MENGGUNAKAN UNICODE TEXT (PERBAIKAN ALIGNMENT)
     function renderPlayerUI() {
         if (isPlaying) {
             playBtn.textContent = unicodePause;
-            playBtn.style.paddingLeft = "0px";   // Posisi center untuk pause
+            playBtn.style.paddingLeft = "0px";    /* Pas di tengah untuk pause */
+            playBtn.style.paddingTop = "0px";
         } else {
             playBtn.textContent = unicodePlay;
-            playBtn.style.paddingLeft = "4px";   // Kompensasi visual segitiga agar center melingkar
+            playBtn.style.paddingLeft = "4px";    /* Dorong sedikit ke kanan agar pas di tengah lingkaran */
+            playBtn.style.paddingTop = "0px";
         }
     }
 
