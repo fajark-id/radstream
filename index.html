@@ -236,6 +236,10 @@
         
         svg { fill: currentColor; color: var(--text-main); }
         .svg-muted { color: var(--text-muted); }
+
+        /* MODAL METADATA STYLE */
+        #metadata-modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:999; justify-content:center; align-items:center; }
+        .modal-content { background:#1e293b; padding:25px; border-radius:20px; text-align:center; color:white; width:80%; max-width:300px; }
     </style>
 </head>
 <body>
@@ -266,6 +270,15 @@
     </div>
 </div>
 
+<div id="metadata-modal" onclick="document.getElementById('metadata-modal').style.display='none'">
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <img id="modal-cover" src="https://via.placeholder.com/150" style="width:150px; height:150px; border-radius:10px; margin-bottom:15px; background:white;">
+        <h3 id="modal-title" style="margin:0;">Lagu Sedang Dimuat...</h3>
+        <p id="modal-artist" style="margin:5px 0; opacity:0.8;">Mohon tunggu</p>
+        <button onclick="document.getElementById('metadata-modal').style.display='none'" style="margin-top:15px; padding:10px 20px; cursor:pointer; border-radius:10px; border:none; background:var(--accent); color:white;">Tutup</button>
+    </div>
+</div>
+
 <div class="player-view" id="player-screen">
     <div class="player-card">
         <img class="player-img" id="p-img" src="" alt="Close Player" onclick="closePlayer()">
@@ -284,7 +297,7 @@
             
             <button class="play-master-btn" id="play-master-btn" onclick="togglePlay(event)">❚❚</button>
             
-            <button class="icon-btn">
+            <button class="icon-btn" onclick="openMetadata()">
                 <svg width="22" height="22" viewBox="0 0 24 24" class="svg-muted"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
             </button>
         </div>
@@ -304,8 +317,16 @@
 
     let isPlaying = true; 
     let isStationLoaded = false;
+    let currentStationId = ""; // VAR PENTING: Untuk tracking ID stasiun
 
-    // FUNGSI LOCK SCREEN (Media Session API)
+    // FUNGSI METADATA (STEP 1)
+    function openMetadata() {
+        document.getElementById('metadata-modal').style.display = 'flex';
+        console.log("Mencari data untuk stasiun:", currentStationId);
+        // Nanti kita sambungkan ke Cloudflare di sini
+    }
+
+    // FUNGSI LOCK SCREEN
     function updateLockScreen(name, logo) {
         if ('mediaSession' in navigator) {
             navigator.mediaSession.metadata = new MediaMetadata({
@@ -314,12 +335,8 @@
                 artwork: [{ src: logo, sizes: '512x512', type: 'image/png' }]
             });
 
-            navigator.mediaSession.setActionHandler('play', () => {
-                if (!isPlaying) togglePlay();
-            });
-            navigator.mediaSession.setActionHandler('pause', () => {
-                if (isPlaying) togglePlay();
-            });
+            navigator.mediaSession.setActionHandler('play', () => { if (!isPlaying) togglePlay(); });
+            navigator.mediaSession.setActionHandler('pause', () => { if (isPlaying) togglePlay(); });
         }
     }
 
@@ -354,8 +371,9 @@
             listWadah.innerHTML = '';
             
             data.forEach(radio => {
+                // Di sini kita kirim radio.id ke fungsi openPlayer
                 listWadah.innerHTML += `
-                    <div class="station-item" onclick="openPlayer('${radio.name}', '${radio.city}, ${radio.province}', '${radio.logo}', '${radio.stream_url}')">
+                    <div class="station-item" onclick="openPlayer('${radio.id}', '${radio.name}', '${radio.city}, ${radio.province}', '${radio.logo}', '${radio.stream_url}')">
                         <img class="station-img" src="${radio.logo}">
                         <div class="station-info">
                             <div class="station-name">${radio.name}</div>
@@ -367,8 +385,9 @@
             });
         }).catch(err => console.error("Gagal memuat daftar stasiun:", err));
 
-    function openPlayer(name, loc, logo, url) {
+    function openPlayer(id, name, loc, logo, url) {
         isStationLoaded = true;
+        currentStationId = id; // Menyimpan ID saat stasiun dipilih
 
         document.getElementById('p-title').textContent = name;
         document.getElementById('p-sub').textContent = loc;
@@ -377,10 +396,9 @@
         document.getElementById('mini-station-name').textContent = name;
         document.getElementById('mini-logo').src = logo;
         
-        // Update Metadata untuk Lock Screen
         updateLockScreen(name, logo);
         
-        document.getElementById('mini-player').classList.add('hidden');
+        document.getElementById('mini-player').classList.remove('hidden');
         document.getElementById('player-screen').style.display = 'flex';
         document.body.classList.add('player-active');
         
