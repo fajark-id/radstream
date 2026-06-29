@@ -203,6 +203,9 @@
     const playPath = "M8 5v14l11-7z";
     const pausePath = "M6 19h4V5H6v14zm8-14v14h4V5h-4z";
 
+    // STATE UTAMA: Menjadi satu-satunya acuan tampilan UI
+    let isPlaying = false; 
+
     function updateSliderBackground(value) {
         volumeSlider.style.background = `linear-gradient(to right, var(--text-main) 0%, var(--text-main) ${value}%, #475569 ${value}%, #475569 100%)`;
     }
@@ -215,18 +218,14 @@
         audio.volume = value / 100;
     });
 
-    // SISTEM STATE MANAGEMENT IKON SECARA MANUAL & AGRESIF
-    function setIconToPause() {
-        playSvg.setAttribute('d', pausePath);
+    // FUNGSI UPDATE UI BERDASARKAN STATE UTAMA
+    function renderPlayerUI() {
+        if (isPlaying) {
+            playSvg.setAttribute('d', pausePath);
+        } else {
+            playSvg.setAttribute('d', playPath);
+        }
     }
-
-    function setIconToPlay() {
-        playSvg.setAttribute('d', playPath);
-    }
-
-    // Backup Event Listeners bawaan OS
-    audio.addEventListener('playing', setIconToPause);
-    audio.addEventListener('pause', setIconToPlay);
 
     // Ambil data stasiun dari JSON
     fetch('indonesia.json')
@@ -254,38 +253,49 @@
         document.getElementById('p-sub').textContent = loc;
         document.getElementById('p-img').src = logo;
         
-        // Aktifkan tampilan overlay & kunci scroll body belakang
         document.getElementById('player-screen').style.display = 'flex';
         document.body.classList.add('player-active');
         
+        // Jika ganti stasiun, reset audio element
         if (audio.src !== url) {
+            audio.load(); // Hentikan buffer streaming sebelumnya
             audio.src = url;
         }
         
-        setIconToPause(); // Paksa ganti ikon langsung tanpa nunggu respon jaringan iOS
+        // Kunci state ke TRUE terlebih dahulu sebelum play
+        isPlaying = true;
+        renderPlayerUI();
         
         audio.play().catch(err => {
-            console.log("Autoplay diblokir browser, mengembalikan ikon.");
-            setIconToPlay();
+            console.log("Autoplay dicegah oleh kebijakan iOS Safari.");
+            isPlaying = false;
+            renderPlayerUI();
         });
     }
 
     function closePlayer() {
         document.getElementById('player-screen').style.display = 'none';
-        document.body.classList.remove('player-active'); // Kembalikan scroll list utama
+        document.body.classList.remove('player-active');
     }
 
     function togglePlay() {
-        if (audio.paused) {
-            setIconToPause(); // Eksekusi UI Instan sebelum proses internal
+        if (!isPlaying) {
+            isPlaying = true;
+            renderPlayerUI();
             audio.play().catch(err => {
-                setIconToPlay();
+                isPlaying = false;
+                renderPlayerUI();
             });
         } else {
             audio.pause();
-            setIconToPlay(); // Eksekusi UI Instan
+            isPlaying = false;
+            renderPlayerUI();
         }
     }
+
+    // Penanganan interupsi sistem iOS (seperti saat ada panggilan masuk atau headphone dicabut)
+    audio.addEventListener('abort', () => { isPlaying = false; renderPlayerUI(); });
+    audio.addEventListener('stalled', () => { console.log("Streaming tersendat / buffering..."); });
 </script>
 
 </body>
