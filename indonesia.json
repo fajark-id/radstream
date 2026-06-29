@@ -11,6 +11,17 @@
     "logo": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS51EvBJDHn50M5um2-Yu6PeRYD0E6cUjBgAA&s?w=150&auto=format&fit=crop&q=60"
   },
   {
+    "id": "880-mustang-fm-jakarta",
+    "name": "Mustang FM",
+    "fm_frequency": "88.0  FM",
+    "description": "Sounds Of The Youth",
+    "genre": "Musik and news",
+    "province": "DKI Jakarta",
+    "city": "Jakarta",
+    "stream_url": "http://103.246.184.62:1935/noice_mustangfm/mustangfm/chunklist.m3u8",
+    "logo": "https://www.mahakax.com/wp-content/uploads/2022/06/logo-mustang.png?w=150&auto=format&fit=crop&q=60"
+  },
+  {
     "id": "gen-fm",
     "name": "Gen FM",
     "fm_frequency": "98.7 FM",
