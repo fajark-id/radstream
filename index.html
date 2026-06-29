@@ -7,82 +7,87 @@
     <style>
         :root {
             --bg-color: #0b132b;
-            --card-bg: #22385c;
+            --card-bg: #1e293b;
             --text-main: #ffffff;
             --text-muted: #94a3b8;
             --accent: #3b82f6;
         }
         body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: var(--bg-color); color: var(--text-main); margin: 0; padding: 20px; display: flex; justify-content: center; }
-        .phone-container { width: 100%; max-width: 390px; min-height: 800px; display: flex; flex-direction: column; position: relative; }
         
-        /* === HALAMAN DAFTAR (2.png) === */
-        .header-title { font-size: 24px; font-weight: bold; margin: 20px 0; }
-        .station-list-card { background: var(--card-bg); border-radius: 20px; padding: 10px 0; display: flex; flex-direction: column; }
-        .station-item { display: flex; align-items: center; padding: 15px 20px; cursor: pointer; border-bottom: 1px solid #2e4a77; }
+        .phone-container { width: 100%; max-width: 390px; min-height: 85vh; display: flex; flex-direction: column; padding-bottom: 70px; }
+        .header-title { font-size: 26px; font-weight: bold; margin: 20px 0; letter-spacing: -0.5px; }
+        
+        /* LIST STATIONS */
+        .station-list-card { background: var(--card-bg); border-radius: 20px; padding: 5px 0; display: flex; flex-direction: column; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+        .station-item { display: flex; align-items: center; padding: 15px 20px; cursor: pointer; border-bottom: 1px solid #2d3748; }
         .station-item:last-child { border-bottom: none; }
-        .station-img { width: 60px; height: 60px; border-radius: 12px; object-fit: contain; background: white; padding: 5px; }
+        .station-img { width: 55px; height: 55px; border-radius: 12px; object-fit: contain; background: white; padding: 4px; }
         .station-info { margin-left: 15px; flex: 1; }
-        .station-name { font-size: 18px; font-weight: bold; margin-bottom: 3px; }
+        .station-name { font-size: 16px; font-weight: 600; margin-bottom: 2px; }
         .station-meta { font-size: 13px; color: var(--text-muted); }
-        
-        /* === FOOTER NAVIGATION === */
-        .footer-nav { display: flex; justify-content: space-between; align-items: center; margin-top: auto; padding: 20px 10px; font-size: 16px; color: var(--text-muted); }
-        .search-icon { font-size: 20px; cursor: pointer; color: var(--text-main); }
 
-        /* === HALAMAN PLAYER FULLSCREEN (1.png) === */
-        .player-view { 
-            position: fixed; top: 0; left: 0; right: 0; bottom: 0; 
-            background: var(--bg-color); z-index: 100; padding: 30px; 
-            display: none; flex-direction: column; align-items: center; justify-content: center;
-        }
-        .player-card { background: var(--card-bg); border-radius: 24px; width: 100%; max-width: 340px; padding: 25px; box-sizing: border-box; text-align: left; }
-        .player-img { width: 100%; aspect-ratio: 1; border-radius: 16px; object-fit: contain; background: white; padding: 15px; box-sizing: border-box; margin-bottom: 25px; }
-        .player-title { font-size: 22px; font-weight: bold; margin-bottom: 5px; }
-        .player-sub { font-size: 14px; color: var(--text-muted); margin-bottom: 20px; }
-        
-        /* Volume Bar */
-        .volume-container { display: flex; align-items: center; gap: 10px; width: 100%; margin-bottom: 30px; }
-        .volume-bar { flex: 1; height: 4px; background: #475569; border-radius: 2px; position: relative; }
-        .volume-progress { width: 40%; height: 100%; background: var(--text-muted); border-radius: 2px; }
-        .volume-dot { width: 12px; height: 12px; background: var(--text-main); border-radius: 50%; position: absolute; left: 40%; top: -4px; }
+        /* FIXED FOOTER BAR */
+        .footer-nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 390px; background: var(--bg-color); display: flex; justify-content: space-between; align-items: center; padding: 20px; box-sizing: border-box; border-top: 1px solid #1e293b; z-index: 90; }
+        .footer-text { font-size: 15px; font-weight: 500; color: var(--text-muted); }
+        .icon-btn { background: none; border: none; padding: 0; cursor: pointer; display: flex; align-items: center; justify-content: center; }
 
-        /* Controls */
-        .player-controls { display: flex; justify-content: space-around; align-items: center; width: 100%; padding: 0 10px; }
-        .control-icon { font-size: 22px; color: var(--text-main); cursor: pointer; opacity: 0.8; }
-        .play-master-btn { width: 60px; height: 60px; border-radius: 50%; border: 3px solid var(--text-main); display: flex; align-items: center; justify-content: center; font-size: 24px; cursor: pointer; color: var(--text-main); background: transparent; }
+        /* PLAYER SCREEN OVERLAY */
+        .player-view { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: var(--bg-color); z-index: 100; padding: 25px; display: none; flex-direction: column; align-items: center; justify-content: center; }
+        .player-card { background: var(--card-bg); border-radius: 24px; width: 100%; max-width: 340px; padding: 25px; box-sizing: border-box; box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
+        .player-img { width: 100%; aspect-ratio: 1; border-radius: 16px; object-fit: contain; background: white; padding: 15px; box-sizing: border-box; margin-bottom: 25px; cursor: pointer; }
+        .player-title { font-size: 22px; font-weight: bold; margin-bottom: 4px; }
+        .player-sub { font-size: 14px; color: var(--text-muted); margin-bottom: 25px; }
+        
+        /* FUNCTIONAL VOLUME SLIDER */
+        .volume-container { display: flex; align-items: center; gap: 12px; width: 100%; margin-bottom: 35px; }
+        .volume-slider { flex: 1; -webkit-appearance: none; appearance: none; height: 4px; background: #475569; border-radius: 2px; outline: none; }
+        .volume-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 12px; height: 12px; border-radius: 50%; background: var(--text-main); cursor: pointer; }
+        
+        /* CONTROLS BAR */
+        .player-controls { display: flex; justify-content: space-between; align-items: center; width: 100%; padding: 0 10px; box-sizing: border-box; }
+        .play-master-btn { width: 60px; height: 60px; border-radius: 50%; border: 2.5px solid var(--text-main); display: flex; align-items: center; justify-content: center; cursor: pointer; background: transparent; transition: transform 0.1s; }
+        .play-master-btn:active { transform: scale(0.95); }
+        svg { fill: currentColor; color: var(--text-main); }
+        .svg-muted { color: var(--text-muted); }
     </style>
 </head>
 <body>
 
 <div class="phone-container" id="main-view">
-    <div class="header-title" id="region-title">Indonesia Station</div>
-    
-    <!-- Wadah Daftar Sesuai Gambar 2.png -->
+    <div class="header-title">Indonesia Station</div>
     <div class="station-list-card" id="list-wadah"></div>
 
     <div class="footer-nav">
-        <span id="nav-text">Indonesia Station</span>
-        <span class="search-icon">🔍</span>
+        <span class="footer-text">Indonesia Station</span>
+        <button class="icon-btn" onclick="alert('Fitur Cari akan aktif di Step berikutnya!')">
+            <svg width="20" height="20" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+        </button>
     </div>
 </div>
 
-<!-- Tampilan Player Sesuai Gambar 1.png -->
 <div class="player-view" id="player-screen">
     <div class="player-card">
-        <!-- Klik gambar untuk kembali ke daftar -->
-        <img class="player-img" id="p-img" src="" alt="" onclick="closePlayer()">
+        <img class="player-img" id="p-img" src="" alt="Close Player" onclick="closePlayer()">
         <div class="player-title" id="p-title">Nama Radio</div>
         <div class="player-sub" id="p-sub">Lokasi</div>
         
         <div class="volume-container">
-            <span>🔊</span>
-            <div class="volume-bar"><div class="volume-progress"></div><div class="volume-dot"></div></div>
+            <svg width="18" height="18" viewBox="0 0 24 24" class="svg-muted"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77zM4 9v6h4l5 5V4L8 9H4z"/></svg>
+            <input type="range" class="volume-slider" id="v-control" min="0" max="1" step="0.1" value="1" oninput="changeVolume(this.value)">
         </div>
 
         <div class="player-controls">
-            <span class="control-icon" onclick="closePlayer()">📋</span>
-            <button class="play-master-btn" id="master-play-btn" onclick="togglePlay()">▶</button>
-            <span class="control-icon">🎵</span>
+            <button class="icon-btn" onclick="closePlayer()">
+                <svg width="22" height="22" viewBox="0 0 24 24"><path d="M4 6h16v2H4zm0 5h16v2H4zm0 5h16v2H4z"/></svg>
+            </button>
+            
+            <button class="play-master-btn" onclick="togglePlay()">
+                <svg width="26" height="26" viewBox="0 0 24 24" id="play-svg"><path d="M8 5v14l11-7z"/></svg>
+            </button>
+            
+            <button class="icon-btn">
+                <svg width="22" height="22" viewBox="0 0 24 24" class="svg-muted"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+            </button>
         </div>
     </div>
 </div>
@@ -91,9 +96,12 @@
 
 <script>
     const audio = document.getElementById('live-audio');
-    let currentStationUrl = "";
+    const playSvg = document.getElementById('play-svg');
 
-    // Load data JSON
+    // Path Ikon SVG Dinamis
+    const playPath = "M8 5v14l11-7z";
+    const pausePath = "M6 19h4V5H6v14zm8-14v14h4V5h-4z";
+
     fetch('indonesia.json')
         .then(res => res.json())
         .then(data => {
@@ -122,10 +130,9 @@
         
         if(audio.src !== url) {
             audio.src = url;
-            currentStationUrl = url;
         }
         audio.play();
-        document.getElementById('master-play-btn').innerHTML = '⏸';
+        playSvg.setAttribute('d', pausePath);
     }
 
     function closePlayer() {
@@ -133,14 +140,17 @@
     }
 
     function togglePlay() {
-        const btn = document.getElementById('master-play-btn');
         if (audio.paused) {
             audio.play();
-            btn.innerHTML = '⏸';
+            playSvg.setAttribute('d', pausePath);
         } else {
             audio.pause();
-            btn.innerHTML = '▶';
+            playSvg.setAttribute('d', playPath);
         }
+    }
+
+    function changeVolume(val) {
+        audio.volume = val;
     }
 </script>
 
