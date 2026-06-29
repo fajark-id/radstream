@@ -5,37 +5,67 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RadStream - Radio Indonesia</title>
     <style>
-        body { font-family: sans-serif; background: #121212; color: white; padding: 20px; }
+        body { font-family: sans-serif; background: #0f172a; color: white; padding: 20px; }
         .container { max-width: 600px; margin: 0 auto; text-align: center; }
-        .radio-card { background: #1e1e1e; padding: 20px; border-radius: 10px; margin-top: 20px; }
-        button { background: #1db954; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        
+        /* Desain Card Player Baru */
+        .radio-card { 
+            background: #1e293b; 
+            padding: 30px 20px; 
+            border-radius: 15px; 
+            margin-top: 30px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+        }
+        .radio-logo {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%; /* Membuat logo jadi bulat */
+            object-fit: cover;
+            border: 3px solid #3b82f6;
+            margin-bottom: 15px;
+        }
+        .status-badge {
+            background: #10b981;
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+            padding: 4px 10px;
+            border-radius: 20px;
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+        h3 { margin: 5px 0; font-size: 22px; }
+        .frequency { color: #3b82f6; font-weight: bold; margin-bottom: 20px; }
+        audio { width: 100%; margin-top: 10px; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <h1>RadStream 📻</h1>
-    <p>Daftar Radio Online Indonesia</p>
+    <p style="color: #94a3b8;">Daftar Radio Online Indonesia</p>
 
+    <!-- Tempat Radio Muncul -->
     <div id="daftar-radio">
         <p>Memuat radio...</p>
     </div>
 </div>
 
 <script>
-    // Mengambil data dari indonesia.json
     fetch('indonesia.json')
         .then(response => response.json())
         .then(data => {
             const wadah = document.getElementById('daftar-radio');
-            wadah.innerHTML = ''; // Kosongkan tulisan "Memuat radio..."
+            wadah.innerHTML = ''; 
 
-            // Munculkan setiap radio yang ada di JSON
             data.forEach(radio => {
                 wadah.innerHTML += `
                     <div class="radio-card">
+                        <div class="status-badge">🔴 ONLINE</div>
+                        <br>
+                        <img class="radio-logo" src="${radio.logo}" alt="${radio.name}">
                         <h3>${radio.name}</h3>
-                        <p>${radio.city}, ${radio.province}</p>
+                        <div class="frequency">${radio.fm_frequency}</div>
                         <audio controls src="${radio.stream_url}"></audio>
                     </div>
                 `;
