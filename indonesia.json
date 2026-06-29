@@ -18,7 +18,7 @@
     "genre": "Top 40",
     "province": "DKI Jakarta",
     "city": "Jakarta",
-    "stream_url": "http://streaming.sim-indonesia.com:8000/genfm",
+    "stream_url": "https://ic.mari.co.id:8443/genfm",
     "logo": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRowqa5EK6EHniD5t6Ul9lKBd0_NVa4sm7ETw&s?w=150&auto=format&fit=crop&q=60"
   }
 ]
