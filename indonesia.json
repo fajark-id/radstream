@@ -22,6 +22,17 @@
     "logo": "https://www.mahakax.com/wp-content/uploads/2022/06/logo-mustang.png?w=150&auto=format&fit=crop&q=60"
   },
   {
+    "id": "892-fm-jakarta-campur-sari",
+    "name": "Campursari FM",
+    "fm_frequency": "89.2 FM",
+    "description": "RRadio Sobat Ambyar",
+    "genre": "Campursari",
+    "province": "DKI Jakarta",
+    "city": "Jakarta",
+    "stream_url": "https://radio-proxy.fadjark-ur.workers.dev/?url=https://a8.siar.us/listen/campursari/stream",
+    "logo": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT0kYJhfeHIgRbRS7caOaDqlEXVCMA_yNy6ldnpnTeAC3PCN6WUuX9zRvsw&s=10?w=150&auto=format&fit=crop&q=60"
+  },
+  {
     "id": "gen-fm",
     "name": "Gen FM",
     "fm_frequency": "98.7 FM",
