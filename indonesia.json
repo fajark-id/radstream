@@ -40,18 +40,7 @@
     "genre": "Top 40",
     "province": "DKI Jakarta",
     "city": "Jakarta",
-    "stream_url": "http://masima.rastream.com/masima-pramborsjakarta?",
+    "stream_url": "https://stream.rcs.revma.com/h77wwp48kxcwv",
     "logo": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQUCjkV6_FkSdcHh2K7jekMtDWZ1xfxtSA59w&s?w=150&auto=format&fit=crop&q=60"
-  },
-  {
-    "id": "trax-fm",
-    "name": "Trax FM",
-    "fm_frequency": "101.4 FM",
-    "description": "Hits Yang Kamu Suka",
-    "genre": "Top 40",
-    "province": "DKI Jakarta",
-    "city": "Jakarta",
-    "stream_url": "http://cloudstreaming.mramedia.com:8003/live",
-    "logo": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTgceZHRzNUqVOjx6ZOhdf2dLev5crO7zP2Kg&s?w=150&auto=format&fit=crop&q=60"
   }
 ]
