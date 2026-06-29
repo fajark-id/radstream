@@ -5,53 +5,61 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RadStream - Radio Indonesia</title>
     <style>
-        body { font-family: sans-serif; background: #0f172a; color: white; padding: 20px; }
-        .container { max-width: 600px; margin: 0 auto; text-align: center; }
+        body { font-family: sans-serif; background: #0f172a; color: white; padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 90vh; margin: 0; }
+        .container { width: 100%; max-width: 400px; text-align: center; }
         
-        /* Desain Card Player Baru */
         .radio-card { 
             background: #1e293b; 
             padding: 30px 20px; 
-            border-radius: 15px; 
-            margin-top: 30px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            border-radius: 20px; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.4);
         }
-        .radio-logo {
-            width: 120px;
-            height: 120px;
-            border-radius: 50%; /* Membuat logo jadi bulat */
-            object-fit: cover;
-            border: 3px solid #3b82f6;
-            margin-bottom: 15px;
-        }
+        
         .status-badge {
-            background: #10b981;
-            color: white;
-            font-size: 12px;
-            font-weight: bold;
-            padding: 4px 10px;
-            border-radius: 20px;
-            display: inline-block;
-            margin-bottom: 10px;
+            background: #10b981; color: white; font-size: 11px; font-weight: bold;
+            padding: 4px 12px; border-radius: 20px; display: inline-block; margin-bottom: 20px;
         }
+
+        /* Perbaikan Logo: Diberi background putih & padding agar teks bernapas */
+        .logo-container { position: relative; width: 140px; height: 140px; margin: 0 auto 15px; }
+        .radio-logo {
+            width: 100%; height: 100%; border-radius: 50%; object-fit: contain;
+            background: white; padding: 10px; box-sizing: border-box;
+            border: 4px solid #3b82f6; transition: transform 0.3s;
+        }
+
+        /* Animasi Berputar jika Radio Play */
+        .playing .radio-logo { animation: putar 4s linear infinite; }
+        @keyframes putar { 100% { transform: rotate(360deg); } }
+
         h3 { margin: 5px 0; font-size: 22px; }
-        .frequency { color: #3b82f6; font-weight: bold; margin-bottom: 20px; }
-        audio { width: 100%; margin-top: 10px; }
+        .frequency { color: #3b82f6; font-weight: bold; margin-bottom: 25px; font-size: 14px; }
+        
+        /* Tombol Play/Pause Custom Bulat Modern */
+        .play-btn {
+            width: 65px; height: 65px; border-radius: 50%; background: #3b82f6; color: white;
+            border: none; font-size: 24px; cursor: pointer; display: inline-flex;
+            align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+            transition: transform 0.2s, background 0.2s;
+        }
+        .play-btn:hover { transform: scale(1.05); background: #2563eb; }
+        .play-btn:active { transform: scale(0.95); }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>RadStream 📻</h1>
-    <p style="color: #94a3b8;">Daftar Radio Online Indonesia</p>
+    <h2 style="margin-bottom: 5px; color: #3b82f6;">RadStream 📻</h2>
+    <p style="color: #94a3b8; margin: 0 0 25px 0; font-size: 14px;">Radio Online Indonesia</p>
 
-    <!-- Tempat Radio Muncul -->
-    <div id="daftar-radio">
-        <p>Memuat radio...</p>
-    </div>
+    <div id="daftar-radio"></div>
 </div>
 
+<audio id="audio-player"></audio>
+
 <script>
+    const player = document.getElementById('audio-player');
+
     fetch('indonesia.json')
         .then(response => response.json())
         .then(data => {
@@ -60,20 +68,39 @@
 
             data.forEach(radio => {
                 wadah.innerHTML += `
-                    <div class="radio-card">
+                    <div class="radio-card" id="card-${radio.id}">
                         <div class="status-badge">🔴 ONLINE</div>
-                        <br>
-                        <img class="radio-logo" src="${radio.logo}" alt="${radio.name}">
+                        <div class="logo-container">
+                            <img class="radio-logo" src="${radio.logo}" alt="${radio.name}">
+                        </div>
                         <h3>${radio.name}</h3>
                         <div class="frequency">${radio.fm_frequency}</div>
-                        <audio controls src="${radio.stream_url}"></audio>
+                        
+                        <button class="play-btn" id="btn-${radio.id}" onclick="toggleRadio('${radio.stream_url}', '${radio.id}')">▶</button>
                     </div>
                 `;
             });
-        })
-        .catch(err => {
-            document.getElementById('daftar-radio').innerHTML = '<p style="color:red;">Gagal memuat radio.</p>';
         });
+
+    // Logika Play / Pause menggunakan 1 tombol
+    function toggleRadio(url, id) {
+        const card = document.getElementById(`card-${id}`);
+        const btn = document.getElementById(`btn-${id}`);
+
+        if (player.src !== url) {
+            player.src = url;
+        }
+
+        if (player.paused) {
+            player.play();
+            card.classList.add('playing'); // Aktifkan animasi berputar
+            btn.innerHTML = '⏸'; // Ganti ikon jadi Pause
+        } else {
+            player.pause();
+            card.classList.remove('playing'); // Hentikan animasi
+            btn.innerHTML = '▶'; // Ganti ikon jadi Play
+        }
+    }
 </script>
 
 </body>
