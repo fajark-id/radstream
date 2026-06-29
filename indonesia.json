@@ -9,5 +9,16 @@
     "city": "Semarang",
     "stream_url": "https://server.radioimeldafm.co.id/listen/swarasemarang/swarasemarang",
     "logo": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS51EvBJDHn50M5um2-Yu6PeRYD0E6cUjBgAA&s?w=150&auto=format&fit=crop&q=60"
+  },
+  {
+    "id": "gen-fm",
+    "name": "Gen FM",
+    "fm_frequency": "98.7 FM",
+    "description": "Generasi Suara Musik Indonesia",
+    "genre": "Top 40",
+    "province": "DKI Jakarta",
+    "city": "Jakarta",
+    "stream_url": "http://streaming.sim-indonesia.com:8000/genfm",
+    "logo": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRowqa5EK6EHniD5t6Ul9lKBd0_NVa4sm7ETw&s?w=150&auto=format&fit=crop&q=60"
   }
 ]
