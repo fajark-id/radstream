@@ -1,0 +1,11 @@
+[
+  {
+    "id": "swara-semarang",
+    "name": "Swara Semarang",
+    "description": "Radio Keluarga Sejahtera",
+    "genre": "Keluarga",
+    "province": "Jawa Tengah",
+    "city": "Semarang",
+    "stream_url": "https://server.radioimeldafm.co.id/listen/swarasemarang/swarasemarang"
+  }
+]
