@@ -48,11 +48,11 @@
             letter-spacing: -0.5px; 
         }
         
-        /* CONTAINER LIST STATION (Scrollable jika stasiun banyak) */
+        /* CONTAINER LIST STATION */
         .station-list-container {
             flex: 1;
             overflow-y: auto;
-            padding-bottom: 90px;
+            padding-bottom: 140px; /* Diperbesar agar list terbawah tidak tertutup mini player */
             -webkit-overflow-scrolling: touch;
         }
 
@@ -85,9 +85,88 @@
             box-sizing: border-box;
         }
 
-        .station-info { margin-left: 15px; flex: 1; }
-        .station-name { font-size: 16px; font-weight: 600; margin-bottom: 2px; }
+        .station-info { margin-left: 15px; flex: 1; overflow: hidden; }
+        .station-name { font-size: 16px; font-weight: 600; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .station-meta { font-size: 13px; color: var(--text-muted); }
+
+        /* STICKY MINI PLAYER */
+        #mini-player {
+            position: fixed;
+            bottom: 75px; /* Berada tepat di atas footer nav */
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            max-width: 360px;
+            background: var(--card-bg);
+            border-radius: 16px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.6);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            box-sizing: border-box;
+            z-index: 80;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            border: 1px solid #2d3748;
+        }
+
+        #mini-player.hidden {
+            transform: translate(-50%, 150%);
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        #mini-player-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-grow: 1;
+            cursor: pointer;
+            overflow: hidden;
+        }
+
+        #mini-logo {
+            width: 42px;
+            height: 42px;
+            border-radius: 10px;
+            object-fit: scale-down;
+            background: white;
+            padding: 3px;
+            box-sizing: border-box;
+        }
+
+        .mini-text {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        #mini-station-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-main);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .mini-subtitle {
+            font-size: 12px;
+            color: var(--accent);
+            font-weight: 500;
+        }
+
+        #mini-playpause-btn {
+            background: none;
+            border: none;
+            color: var(--text-main);
+            font-size: 18px;
+            cursor: pointer;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
 
         /* FIXED FOOTER BAR */
         .footer-nav { 
@@ -149,22 +228,15 @@
             height: 65px; 
             border-radius: 50%; 
             border: 2.5px solid var(--text-main); 
-    
-            /* Gunakan flexbox super center */
             display: inline-flex; 
             align-items: center; 
             justify-content: center; 
-    
             cursor: pointer; 
             background: transparent; 
             transition: transform 0.1s;
             color: var(--text-main);
-    
-            /* Gunakan font-size yang pas dan line-height 0 untuk mematikan padding bawaan font */
             font-size: 24px; 
             line-height: 0;
-    
-            /* Menghilangkan default padding/border bawaan browser */
             padding: 0;
             box-sizing: border-box;
         }
@@ -181,6 +253,18 @@
     
     <div class="station-list-container">
         <div class="station-list-card" id="list-wadah"></div>
+    </div>
+
+    <!-- STICKY MINI PLAYER BARU -->
+    <div id="mini-player" class="hidden">
+        <div id="mini-player-info" onclick="openFullPlayerFromMini()">
+            <img id="mini-logo" src="" alt="Logo Station">
+            <div class="mini-text">
+                <span id="mini-station-name">Nama Stasiun</span>
+                <span class="mini-subtitle">Sedang diputar</span>
+            </div>
+        </div>
+        <button id="mini-playpause-btn" onclick="togglePlay(event)">❚❚</button>
     </div>
 
     <div class="footer-nav">
@@ -207,7 +291,7 @@
                 <svg width="22" height="22" viewBox="0 0 24 24"><path d="M4 6h16v2H4zm0 5h16v2H4zm0 5h16v2H4z"/></svg>
             </button>
             
-            <button class="play-master-btn" id="play-master-btn" onclick="togglePlay()">❚❚</button>
+            <button class="play-master-btn" id="play-master-btn" onclick="togglePlay(event)">❚❚</button>
             
             <button class="icon-btn">
                 <svg width="22" height="22" viewBox="0 0 24 24" class="svg-muted"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
@@ -221,13 +305,14 @@
 <script>
     const audio = document.getElementById('live-audio');
     const playBtn = document.getElementById('play-master-btn');
+    const miniPlayBtn = document.getElementById('mini-playpause-btn');
     const volumeSlider = document.getElementById('v-control');
 
     const unicodePlay = "▶";
     const unicodePause = "❚❚";
 
-    // Setel default state ke TRUE karena radio otomatis memutar saat list diklik
     let isPlaying = true; 
+    let isStationLoaded = false; // Penanda jika sudah ada stasiun yang dipilih
 
     function updateSliderBackground(value) {
         volumeSlider.style.background = `linear-gradient(to right, var(--text-main) 0%, var(--text-main) ${value}%, #475569 ${value}%, #475569 100%)`;
@@ -241,21 +326,19 @@
         audio.volume = value / 100;
     });
 
-    // FUNGSI UPDATE UI MENGGUNAKAN UNICODE TEXT
-    // FUNGSI UPDATE UI MENGGUNAKAN UNICODE TEXT (PERBAIKAN ALIGNMENT)
+    // Sinkronisasi UI Full Player dan Mini Player
     function renderPlayerUI() {
         if (isPlaying) {
             playBtn.textContent = unicodePause;
-            playBtn.style.paddingLeft = "0px";    /* Pas di tengah untuk pause */
-            playBtn.style.paddingTop = "0px";
+            playBtn.style.paddingLeft = "0px";
+            miniPlayBtn.textContent = unicodePause;
         } else {
             playBtn.textContent = unicodePlay;
-            playBtn.style.paddingLeft = "4px";    /* Dorong sedikit ke kanan agar pas di tengah lingkaran */
-            playBtn.style.paddingTop = "0px";
+            playBtn.style.paddingLeft = "4px";
+            miniPlayBtn.textContent = unicodePlay;
         }
     }
 
-    // Ambil data stasiun dari JSON
     fetch('indonesia.json')
         .then(res => res.json())
         .then(data => {
@@ -277,18 +360,26 @@
         }).catch(err => console.error("Gagal memuat daftar stasiun:", err));
 
     function openPlayer(name, loc, logo, url) {
+        isStationLoaded = true; // Tandai bahwa ada stasiun yang aktif
+
+        // Update Full Player
         document.getElementById('p-title').textContent = name;
         document.getElementById('p-sub').textContent = loc;
         document.getElementById('p-img').src = logo;
         
+        // Update Mini Player
+        document.getElementById('mini-station-name').textContent = name;
+        document.getElementById('mini-logo').src = logo;
+        
+        // Sembunyikan mini player saat layar player utama terbuka
+        document.getElementById('mini-player').classList.add('hidden');
         document.getElementById('player-screen').style.display = 'flex';
-        document.body.classList.add('player-active'); // Kunci scroll halaman belakang
+        document.body.classList.add('player-active');
         
         if (audio.src !== url) {
             audio.src = url;
         }
         
-        // Langsung tampilkan tombol Pause (❚❚) sejak milidetik pertama layar terbuka
         isPlaying = true;
         renderPlayerUI();
         
@@ -301,10 +392,24 @@
 
     function closePlayer() {
         document.getElementById('player-screen').style.display = 'none';
-        document.body.classList.remove('player-active'); // Kembalikan scroll list utama
+        document.body.classList.remove('player-active'); 
+        
+        // Jika sudah ada stasiun yang dipilih, munculkan mini player saat full player ditutup
+        if (isStationLoaded) {
+            document.getElementById('mini-player').classList.remove('hidden');
+        }
     }
 
-    function togglePlay() {
+    function openFullPlayerFromMini() {
+        document.getElementById('mini-player').classList.add('hidden');
+        document.getElementById('player-screen').style.display = 'flex';
+        document.body.classList.add('player-active');
+    }
+
+    function togglePlay(event) {
+        // Mencegah klik tombol play di mini-player memicu fungsi openFullPlayerFromMini()
+        if (event) event.stopPropagation();
+
         if (isPlaying) {
             audio.pause();
             isPlaying = false;
