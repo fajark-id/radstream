@@ -36,7 +36,7 @@
     "stream_url": "https://radio-proxy.fadjark-ur.workers.dev/?url=https://s1.gntr.net/listen/campursari/campursari892",
     "logo": "https://www.campursarifm.com/images/logo-square.jpg?w=150&auto=format&fit=crop&q=60",
     "api_type": "azuracast",
-    "api_url": "https://s1.gntr.net/api/nowplaying/campursari892"
+    "api_url": "https://s1.gntr.net/api/nowplaying/gentara_campursari"
   },
   {
     "id": "gen-fm",
