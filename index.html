@@ -361,62 +361,73 @@
     let currentStationId = ""; 
     let isMetadataView = false;
     
-    // 1. PERBAIKAN: Deklarasikan variabel global agar tidak ReferenceError
-    let currentApiUrl = ""; 
-    let currentApiType = ""; 
+    // Perbaikan 1: Menyediakan penampung data API global agar tidak ReferenceError
+    let currentApiUrl = "";
+    let currentApiType = "";
+    let metadataPoller = null;
 
-async function toggleMetadataView() {
-    if (!isMetadataView) {
-        const metaImg = document.getElementById('meta-img');
-        document.getElementById('meta-title').textContent = "Mengambil data...";
-        document.getElementById('meta-artist').textContent = "Mohon tunggu...";
-        
-        // Cek jika tidak ada API atau tipenya fallback
-        if (!currentApiUrl || currentApiUrl === "" || currentApiType === "fallback" || currentApiType === "undefined") {
-            document.getElementById('meta-title').textContent = document.getElementById('p-title').textContent; 
-            document.getElementById('meta-artist').textContent = "Sedang Mengudara Live"; 
-            metaImg.src = document.getElementById('p-img').src; 
-            metaImg.style.display = 'block';
-            
-            playerCard.classList.add('view-meta-active');
-            musicBtn.querySelector('svg').classList.add('svg-active');
-            isMetadataView = true;
+async function requestMetadataUpdate() {
+    if (!currentApiUrl || currentApiUrl.trim() === "" || currentApiType === "fallback") {
+        resetMetadataToDefault();
+        return;
+    }
+
+    try {
+        // Menyuntikkan cache-buster timestamp unik agar browser selalu mendownload versi terbaru
+        const response = await fetch(`${WORKER_URL}/?api_url=${encodeURIComponent(currentApiUrl)}&api_type=${currentApiType}&_t=${Date.now()}`);
+        const data = await response.json();
+
+        // Antisipasi Eror Stasiun Offline
+        if (!data || data.title === "Live Streaming" || data.title === "Station Offline") {
+            resetMetadataToDefault();
             return;
         }
 
-        try {
-            // Panggil worker kamu dengan parameter yang tepat
-            const response = await fetch(`${WORKER_URL}/?api_url=${encodeURIComponent(currentApiUrl)}&api_type=${currentApiType}`);
-            const data = await response.json();
-
-            document.getElementById('meta-title').textContent = data.title || "Live Streaming";
-            document.getElementById('meta-artist').textContent = data.artist || "Radio Station";
-            
-            if (data.cover && data.cover.trim() !== "") {
-                metaImg.src = data.cover;
-                metaImg.style.display = 'block';
-            } else {
-                metaImg.src = document.getElementById('p-img').src;
-                metaImg.style.display = 'block';
-            }
-            
-            playerCard.classList.add('view-meta-active');
-            musicBtn.querySelector('svg').classList.add('svg-active');
-            isMetadataView = true;
-
-        } catch (err) {
-            console.error("Error fetching metadata:", err);
-            document.getElementById('meta-title').textContent = "Live Streaming";
-            document.getElementById('meta-artist').textContent = document.getElementById('p-title').textContent;
+        document.getElementById('meta-title').textContent = data.title;
+        document.getElementById('meta-artist').textContent = data.artist;
+        
+        const metaImg = document.getElementById('meta-img');
+        if (data.cover && data.cover.trim() !== "") {
+            metaImg.src = data.cover;
+        } else {
             metaImg.src = document.getElementById('p-img').src;
-            metaImg.style.display = 'block';
-            playerCard.classList.add('view-meta-active');
-            isMetadataView = true;
         }
+        metaImg.style.display = 'block';
+
+    } catch (err) {
+        console.error("Gagal memperbarui metadata live:", err);
+        resetMetadataToDefault();
+    }
+}
+
+function resetMetadataToDefault() {
+    const metaImg = document.getElementById('meta-img');
+    document.getElementById('meta-title').textContent = document.getElementById('p-title').textContent; 
+    document.getElementById('meta-artist').textContent = "Sedang Mengudara Live"; 
+    metaImg.src = document.getElementById('p-img').src; 
+    metaImg.style.display = 'block';
+}
+
+async function toggleMetadataView() {
+    if (!isMetadataView) {
+        document.getElementById('meta-title').textContent = "Mengambil data...";
+        document.getElementById('meta-artist').textContent = "Mohon tunggu...";
+        
+        playerCard.classList.add('view-meta-active');
+        musicBtn.querySelector('svg').classList.add('svg-active');
+        isMetadataView = true;
+
+        // Ambil data pertama saat dibuka
+        await requestMetadataUpdate();
+
+        // Solusi Campursari FM: Jalankan perulangan sinkronisasi data berkala (setiap 15 detik)
+        clearInterval(metadataPoller);
+        metadataPoller = setInterval(requestMetadataUpdate, 15000);
     } else {
         playerCard.classList.remove('view-meta-active');
         musicBtn.querySelector('svg').classList.remove('svg-active');
         isMetadataView = false;
+        clearInterval(metadataPoller);
     }
 }
 
@@ -462,11 +473,10 @@ async function toggleMetadataView() {
             const listWadah = document.getElementById('list-wadah');
             listWadah.innerHTML = '';
             data.forEach(radio => {
-                // Ambil data api dari json, berikan nilai default jika kosong
                 const apiType = radio.api_type || 'fallback';
                 const apiUrl = radio.api_url || '';
-
-                // 2. PERBAIKAN: Kirim parameter apiUrl dan apiType ke dalam fungsi openPlayer
+                
+                // Perbaikan 2: Menyertakan binding variable api_url & api_type ke loop HTML click event
                 listWadah.innerHTML += `
                     <div class="station-item" onclick="openPlayer('${radio.id}', '${radio.name}', '${radio.city}, ${radio.province}', '${radio.logo}', '${radio.stream_url}', '${apiUrl}', '${apiType}')">
                         <img class="station-img" src="${radio.logo}">
@@ -480,16 +490,16 @@ async function toggleMetadataView() {
             });
         }).catch(err => console.error("Gagal memuat daftar stasiun:", err));
 
-    // 3. PERBAIKAN: Terima parameter apiUrl dan apiType di fungsi openPlayer
+    // Perbaikan 3: Menerima parameter lengkap dari manifest JSON stasiun radio
     function openPlayer(id, name, loc, logo, url, apiUrl = '', apiType = 'fallback') {
         isStationLoaded = true;
         currentStationId = id; 
         
-        // Simpan ke variabel global agar bisa dibaca saat tombol musik diklik
         currentApiUrl = apiUrl;
         currentApiType = apiType;
         
         isMetadataView = false;
+        clearInterval(metadataPoller);
         playerCard.classList.remove('view-meta-active');
         musicBtn.querySelector('svg').classList.remove('svg-active');
 
@@ -506,7 +516,11 @@ async function toggleMetadataView() {
         document.getElementById('player-screen').style.display = 'flex';
         document.body.classList.add('player-active');
         
+        // Perbaikan 4: Atasi Lag Jeda Audio. Bersihkan sisa buffer stream lama sebelum memuat URL baru.
         if (audio.src !== url) {
+            audio.pause();
+            audio.removeAttribute('src');
+            audio.load();
             audio.src = url;
         }
         
@@ -548,6 +562,6 @@ async function toggleMetadataView() {
         }
     }
 </script>
-    
+
 </body>
 </html>
