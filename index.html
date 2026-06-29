@@ -25,7 +25,6 @@
             justify-content: center;
         }
         
-        /* Mencegah scroll pada body utama saat player aktif */
         body.player-active {
             overflow: hidden;
             position: fixed;
@@ -48,11 +47,10 @@
             letter-spacing: -0.5px; 
         }
         
-        /* CONTAINER LIST STATION */
         .station-list-container {
             flex: 1;
             overflow-y: auto;
-            padding-bottom: 140px; /* Diperbesar agar list terbawah tidak tertutup mini player */
+            padding-bottom: 140px;
             -webkit-overflow-scrolling: touch;
         }
 
@@ -89,10 +87,9 @@
         .station-name { font-size: 16px; font-weight: 600; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .station-meta { font-size: 13px; color: var(--text-muted); }
 
-        /* STICKY MINI PLAYER */
         #mini-player {
             position: fixed;
-            bottom: 75px; /* Berada tepat di atas footer nav */
+            bottom: 75px;
             left: 50%;
             transform: translateX(-50%);
             width: 90%;
@@ -168,7 +165,6 @@
             justify-content: center;
         }
 
-        /* FIXED FOOTER BAR */
         .footer-nav { 
             position: fixed; 
             bottom: 0; 
@@ -189,7 +185,6 @@
         .footer-text { font-size: 15px; font-weight: 500; color: var(--text-muted); }
         .icon-btn { background: none; border: none; padding: 0; cursor: pointer; display: flex; align-items: center; justify-content: center; }
 
-        /* PLAYER SCREEN OVERLAY (ANTI SCROLL) */
         .player-view { 
             position: fixed; 
             top: 0; 
@@ -211,16 +206,13 @@
         .player-title { font-size: 22px; font-weight: bold; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .player-sub { font-size: 14px; color: var(--text-muted); margin-bottom: 25px; }
         
-        /* SMOOTH VOLUME SLIDER */
         .volume-container { display: flex; align-items: center; gap: 12px; width: 100%; margin-bottom: 35px; }
         .volume-slider { 
             flex: 1; -webkit-appearance: none; appearance: none; height: 4px; border-radius: 2px; outline: none;
             background: linear-gradient(to right, var(--text-main) 0%, var(--text-main) 100%, #475569 100%, #475569 100%);
         }
         .volume-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 14px; height: 14px; border-radius: 50%; background: var(--text-main); cursor: pointer; border: none; }
-        .volume-slider::-moz-range-thumb { width: 14px; height: 14px; border-radius: 50%; background: var(--text-main); cursor: pointer; border: none; }
         
-        /* CONTROLS BAR WITH UNICODE BUTTON */
         .player-controls { display: flex; justify-content: space-between; align-items: center; width: 100%; padding: 0 10px; box-sizing: border-box; }
         
         .play-master-btn { 
@@ -255,7 +247,6 @@
         <div class="station-list-card" id="list-wadah"></div>
     </div>
 
-    <!-- STICKY MINI PLAYER BARU -->
     <div id="mini-player" class="hidden">
         <div id="mini-player-info" onclick="openFullPlayerFromMini()">
             <img id="mini-logo" src="" alt="Logo Station">
@@ -312,7 +303,25 @@
     const unicodePause = "❚❚";
 
     let isPlaying = true; 
-    let isStationLoaded = false; // Penanda jika sudah ada stasiun yang dipilih
+    let isStationLoaded = false;
+
+    // FUNGSI LOCK SCREEN (Media Session API)
+    function updateLockScreen(name, logo) {
+        if ('mediaSession' in navigator) {
+            navigator.mediaSession.metadata = new MediaMetadata({
+                title: name,
+                artist: 'RadStream',
+                artwork: [{ src: logo, sizes: '512x512', type: 'image/png' }]
+            });
+
+            navigator.mediaSession.setActionHandler('play', () => {
+                if (!isPlaying) togglePlay();
+            });
+            navigator.mediaSession.setActionHandler('pause', () => {
+                if (isPlaying) togglePlay();
+            });
+        }
+    }
 
     function updateSliderBackground(value) {
         volumeSlider.style.background = `linear-gradient(to right, var(--text-main) 0%, var(--text-main) ${value}%, #475569 ${value}%, #475569 100%)`;
@@ -326,7 +335,6 @@
         audio.volume = value / 100;
     });
 
-    // Sinkronisasi UI Full Player dan Mini Player
     function renderPlayerUI() {
         if (isPlaying) {
             playBtn.textContent = unicodePause;
@@ -360,18 +368,18 @@
         }).catch(err => console.error("Gagal memuat daftar stasiun:", err));
 
     function openPlayer(name, loc, logo, url) {
-        isStationLoaded = true; // Tandai bahwa ada stasiun yang aktif
+        isStationLoaded = true;
 
-        // Update Full Player
         document.getElementById('p-title').textContent = name;
         document.getElementById('p-sub').textContent = loc;
         document.getElementById('p-img').src = logo;
         
-        // Update Mini Player
         document.getElementById('mini-station-name').textContent = name;
         document.getElementById('mini-logo').src = logo;
         
-        // Sembunyikan mini player saat layar player utama terbuka
+        // Update Metadata untuk Lock Screen
+        updateLockScreen(name, logo);
+        
         document.getElementById('mini-player').classList.add('hidden');
         document.getElementById('player-screen').style.display = 'flex';
         document.body.classList.add('player-active');
@@ -384,7 +392,7 @@
         renderPlayerUI();
         
         audio.play().catch(err => {
-            console.log("Autoplay diblokir browser, mengembalikan ke tombol Play.");
+            console.log("Autoplay diblokir browser");
             isPlaying = false;
             renderPlayerUI();
         });
@@ -394,7 +402,6 @@
         document.getElementById('player-screen').style.display = 'none';
         document.body.classList.remove('player-active'); 
         
-        // Jika sudah ada stasiun yang dipilih, munculkan mini player saat full player ditutup
         if (isStationLoaded) {
             document.getElementById('mini-player').classList.remove('hidden');
         }
@@ -407,7 +414,6 @@
     }
 
     function togglePlay(event) {
-        // Mencegah klik tombol play di mini-player memicu fungsi openFullPlayerFromMini()
         if (event) event.stopPropagation();
 
         if (isPlaying) {
