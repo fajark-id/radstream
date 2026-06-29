@@ -99,25 +99,50 @@
 <audio id="live-audio"></audio>
 
 <script>
-    const audio = document.getElementById('live-audio');
+const audio = document.getElementById('live-audio');
     const playSvg = document.getElementById('play-svg');
     const volumeSlider = document.getElementById('v-control');
 
     const playPath = "M8 5v14l11-7z";
     const pausePath = "M6 19h4V5H6v14zm8-14v14h4V5h-4z";
 
-    // Fungsi update pewarnaan background slider (kiri putih, kanan abu-abu)
+    // Fungsi pewarnaan slider (mengisi warna dari kiri ke kanan)
     function updateSliderBackground(value) {
         volumeSlider.style.background = `linear-gradient(to right, var(--text-main) 0%, var(--text-main) ${value}%, #475569 ${value}%, #475569 100%)`;
     }
 
-    // Input listener untuk slider agar pergeseran sangat smooth
+    // Mengatur inisialisasi warna awal slider (100% penuh)
+    updateSliderBackground(100);
+
+    // Event Listener Geser Volume
     volumeSlider.addEventListener('input', function() {
         const value = this.value;
         updateSliderBackground(value);
-        audio.volume = value / 100; // Tetap sertakan untuk kompatibilitas PC/Android
+        audio.volume = value / 100;
     });
 
+    // ====================================================
+    // SOLUSI IOS: EVENT LISTENERS OTOMATIS UNTUK IKON AUDIO
+    // ====================================================
+    
+    // Ketika suara benar-benar mulai keluar, paksa ikon jadi PAUSE
+    audio.addEventListener('playing', () => {
+        playSvg.setAttribute('d', pausePath);
+    });
+
+    // Ketika lagu berhenti atau di-pause, paksa ikon jadi PLAY
+    audio.addEventListener('pause', () => {
+        playSvg.setAttribute('d', playPath);
+    });
+
+    // Ketika ganti stasiun, setel ke bentuk PLAY dulu selagi loading stream baru
+    audio.addEventListener('loadstart', () => {
+        playSvg.setAttribute('d', playPath);
+    });
+
+    // ====================================================
+
+    // Ambil data stasiun dari json
     fetch('indonesia.json')
         .then(res => res.json())
         .then(data => {
@@ -144,16 +169,14 @@
         document.getElementById('p-img').src = logo;
         document.getElementById('player-screen').style.display = 'flex';
         
-        if(audio.src !== url) {
+        if (audio.src !== url) {
             audio.src = url;
+            audio.load(); // Paksa browser memuat ulang alamat streaming baru
         }
         
-        // Memastikan perubahan ikon tersinkronisasi tepat saat audio dijalankan
-        audio.play().then(() => {
-            playSvg.setAttribute('d', pausePath);
-        }).catch(err => {
-            // Fallback jika browser memaksa interaksi pertama user
-            playSvg.setAttribute('d', playPath);
+        // Cukup panggil play, perubahan ikon diserahkan ke Event Listener di atas
+        audio.play().catch(err => {
+            console.log("iOS Autoplay blocked, menunggu interaksi user.");
         });
     }
 
@@ -163,11 +186,9 @@
 
     function togglePlay() {
         if (audio.paused) {
-            audio.play();
-            playSvg.setAttribute('d', pausePath);
+            audio.play().catch(err => console.log(err));
         } else {
             audio.pause();
-            playSvg.setAttribute('d', playPath);
         }
     }
 </script>
