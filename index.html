@@ -270,7 +270,7 @@
             justify-content: center; 
             cursor: pointer; 
             background: transparent; 
-            transition: transform 0.1s;
+            transition: transform(0.1s);
             color: var(--text-main);
             font-size: 24px; 
             line-height: 0;
@@ -349,12 +349,10 @@
     </div>
 </div>
 
-<audio id="live-audio" preload="none"></audio>
-
 <script>
 const WORKER_URL = "https://radstream-api.fadjark-ur.workers.dev"; 
 let audio = null; 
-let hlsInstance = null; // <--- Tambahkan ini
+let hlsInstance = null;
 
 const playBtn = document.getElementById('play-master-btn');
 const miniPlayBtn = document.getElementById('mini-playpause-btn');
@@ -394,7 +392,7 @@ function initAudioElement(url) {
     audio.preload = "none"; 
     audio.volume = volumeSlider.value / 100;
 
-    // --- STATE GUARD (Tetap sama seperti racikan anti-ghosting kita) ---
+    // --- STATE GUARD ---
     audio.addEventListener('play', () => {
         if (!isPlaying) { audio.pause(); return; }
         renderPlayerUI();
@@ -443,8 +441,8 @@ function initAudioElement(url) {
     audio.addEventListener('emptied', () => { if (!isPlaying) renderPlayerUI(); });
     audio.addEventListener('abort', () => { if (!isPlaying) renderPlayerUI(); });
 
-    // --- ENGINE ROUTING (Jalur Pemisahan HLS vs Standar) ---
-    if (url.includes('.m3u8')) || url.includes('revma.com')) {
+    // --- ENGINE ROUTING (Tanda kurung kondisional diperbaiki di sini) ---
+    if (url.includes('.m3u8') || url.includes('revma.com')) {
         if (Hls.isSupported()) {
             hlsInstance = new Hls({
                 liveDurationInfinity: true,
@@ -478,6 +476,7 @@ function initAudioElement(url) {
         audio.src = url;
     }
 }
+
 function renderPlayerUI() {
     if (isPlaying) {
         playBtn.textContent = unicodePause;
@@ -576,6 +575,7 @@ function togglePlay(event) {
         });
     }
 }
+
 function closePlayer() {
     document.getElementById('player-screen').style.display = 'none';
     document.body.classList.remove('player-active'); 
