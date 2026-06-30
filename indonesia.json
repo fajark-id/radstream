@@ -126,6 +126,20 @@
     "api_url": "https://ic.mari.co.id:8443/status-json.xsl?mount=kisfm"
   },
   {
+    "id": "female-radio",
+    "name": "Female Radio",
+    "fm_frequency": "97.9 FM",
+    "description": "Hit Your Love",
+    "genre": "Pop and Adult Contemporary",
+    "province": "DKI Jakarta",
+    "city": "Jakarta",
+    "country": "Indonesia",
+    "stream_url": "https://stream.rcs.revma.com/9thenqqd2ncwv",
+    "logo": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQD67OqQ2Rx1mGoU33kx1rdFit4om6EW8ngqi3yOlGYvA&s=10?w=150&auto=format&fit=crop&q=60",
+    "api_type": "fallback",
+    "api_url": "fallback"
+  },
+  {
     "id": "gen-fm",
     "name": "Gen FM",
     "fm_frequency": "98.7 FM",
@@ -138,6 +152,20 @@
     "logo": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRowqa5EK6EHniD5t6Ul9lKBd0_NVa4sm7ETw&s?w=150&auto=format&fit=crop&q=60",
     "api_type": "icecast",
     "api_url": "https://ic.mari.co.id:8443/status-json.xsl?mount=genfm"
+  },
+  {
+    "id": "delta-fm",
+    "name": "Delta FM",
+    "fm_frequency": "99.1 FM",
+    "description": "Lagu Enak Ditelinga",
+    "genre": "Pop and Adult Contemporary",
+    "province": "DKI Jakarta",
+    "city": "Jakarta",
+    "country": "Indonesia",
+    "stream_url": "https://stream.rcs.revma.com/k02rmq48kxcwv",
+    "logo": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQu58MBi2QTm0rmUeEt5PJqX15DZ-JpWzerDxQ2DXTSQg&s=10?w=150&auto=format&fit=crop&q=60",
+    "api_type": "fallback",
+    "api_url": "fallback"
   },
   {
     "id": "jak-fm",
@@ -154,18 +182,18 @@
     "api_url": "https://ic.mari.co.id:8443/status-json.xsl?mount=jakfm"
   },
   {
-    "id": "trax-fm",
-    "name": "Trax FM",
+    "id": "iswara-fm",
+    "name": "iSwara FM",
     "fm_frequency": "101.4 FM",
     "description": "Hits Yang Kamu Suka",
     "genre": "Pop and R&B",
     "province": "DKI Jakarta",
     "city": "Jakarta",
     "country": "Indonesia",
-    "stream_url": "https://stream.radiojar.com/rrqf78p3bnzuv",
-    "logo": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSaiHfdALV5ubklBb5VEoGyYAVCJbsCs5KH_94RsgxNmg&s=10?w=150&auto=format&fit=crop&q=60",
+    "stream_url": "https://stream.radiojar.com/4ywdgup3bnzuv",
+    "logo": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSAmgxIRGtHeH9wqp0tLoZqRrip-uWHGfcGPZMXilL7mA&s=10?w=150&auto=format&fit=crop&q=60",
     "api_type": "radiojar",
-    "api_url": "https://www.radiojar.com/api/stations/rrqf78p3bnzuv/now_playing/"
+    "api_url": "https://www.radiojar.com/api/stations/4ywdgup3bnzuv/now_playing/"
   },
   {
     "id": "prambors-fm",
