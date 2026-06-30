@@ -106,7 +106,7 @@
     "province": "DKI Jakarta",
     "city": "Jakarta",
     "country": "Indonesia",
-    "stream_url": "https://stream.rcs.revma.com/h77wwp48kxcwv",
+    "stream_url": "https://radio-proxy.fadjark-ur.workers.dev/?url=https://n07-us.rcs.revma.com/h77wwp48kxcwv/7_etg8v8hh6wbt02/playlist.m3u8",
     "logo": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQUCjkV6_FkSdcHh2K7jekMtDWZ1xfxtSA59w&s?w=150&auto=format&fit=crop&q=60",
     "api_type": "prambors",
     "api_url": "https://pramborsfm.com/api/nowplaying"
