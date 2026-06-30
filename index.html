@@ -444,7 +444,7 @@ function initAudioElement(url) {
     audio.addEventListener('abort', () => { if (!isPlaying) renderPlayerUI(); });
 
     // --- ENGINE ROUTING (Jalur Pemisahan HLS vs Standar) ---
-    if (url.includes('.m3u8')) {
+    if (url.includes('.m3u8')) || url.includes('revma.com')) {
         if (Hls.isSupported()) {
             hlsInstance = new Hls({
                 liveDurationInfinity: true,
