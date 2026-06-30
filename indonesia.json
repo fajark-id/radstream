@@ -148,7 +148,7 @@
     "province": "DKI Jakarta",
     "city": "Jakarta",
     "country": "Indonesia",
-    "stream_url": "https://n08-us.rcs.revma.com/9thenqqd2ncwv",
+    "stream_url": "https://stream.rcs.revma.com/9thenqqd2ncwv",
     "logo": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQD67OqQ2Rx1mGoU33kx1rdFit4om6EW8ngqi3yOlGYvA&s=10?w=150&auto=format&fit=crop&q=60",
     "api_type": "fallback",
     "api_url": "fallback"
@@ -176,7 +176,7 @@
     "province": "DKI Jakarta",
     "city": "Jakarta",
     "country": "Indonesia",
-    "stream_url": "https://n06-us.rcs.revma.com/k02rmq48kxcwv",
+    "stream_url": "https://stream.rcs.revma.com/k02rmq48kxcwv",
     "logo": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQu58MBi2QTm0rmUeEt5PJqX15DZ-JpWzerDxQ2DXTSQg&s=10?w=150&auto=format&fit=crop&q=60",
     "api_type": "fallback",
     "api_url": "fallback"
@@ -218,7 +218,7 @@
     "province": "DKI Jakarta",
     "city": "Jakarta",
     "country": "Indonesia",
-    "stream_url": "https://n03-us.rcs.revma.com/h77wwp48kxcwv",
+    "stream_url": "https://stream.rcs.revma.com/h77wwp48kxcwv",
     "logo": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRG8MBP8qwET36HVMSGI5K1FBhDyMvWljBKSPxaYFVnrA&s=10?w=150&auto=format&fit=crop&q=60",
     "api_type": "prambors",
     "api_url": "https://pramborsfm.com/api/nowplaying"
