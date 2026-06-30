@@ -14,6 +14,20 @@
     "api_url": "https://server.radioimeldafm.co.id/api/nowplaying/swarasemarang"
   },
   {
+    "id": "swara-kendal",
+    "name": "Swara Kendal",
+    "fm_frequency": "93.0 FM",
+    "description": "Idola Keluarga Kendal",
+    "genre": "Pop / Rock",
+    "province": "Jawa Tengah",
+    "city": "Kendal",
+    "country": "Indonesia",
+    "stream_url": "https://i.klikhost.com/8822/;",
+    "logo": "https://play-lh.googleusercontent.com/Bs4UJUL3DJqDLIF9y5AV2ia7eePYWdiTkADJXowmXjLZy-gwPTmG1pSEpwU786HFQw?w=150&auto=format&fit=crop&q=60",
+    "api_type": "fallback",
+    "api_url": ""
+  },
+  {
     "id": "880-mustang-fm-jakarta",
     "name": "Mustang FM",
     "fm_frequency": "88.0  FM",
