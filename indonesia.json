@@ -98,6 +98,20 @@
     "api_url": "https://stream-ssl.arenastreaming.com:8000/status-json.xsl?mount=jakarta"
   },
   {
+    "id": "sonora-fm",
+    "name": "Sonora FM",
+    "fm_frequency": "92.0 FM",
+    "description": "News, Traffic and Music",
+    "genre": "News and Talk",
+    "province": "DKI Jakarta",
+    "city": "Jakarta",
+    "country": "Indonesia",
+    "stream_url": "https://sonora-radio.arenastreaming.com/8130/stream",
+    "logo": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTByqQzkWUVR4EalTEBqRkGfUTveX_uwvGrrPX_wrgjeg&s=10?w=150&auto=format&fit=crop&q=60",
+    "api_type": "fallback",
+    "api_url": "fallback"
+  },
+  {
     "id": "hot-fm",
     "name": "Hot FM",
     "fm_frequency": "93.2 FM",
