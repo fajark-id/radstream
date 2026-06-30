@@ -34,7 +34,7 @@
     "province": "DKI Jakarta",
     "city": "Jakarta",
     "stream_url": "https://radio-proxy.fadjark-ur.workers.dev/?url=https://s1.gntr.net/listen/campursari/campursari892",
-    "logo": "https://www.campursarifm.com/images/logo-square.jpg?w=150&auto=format&fit=crop&q=60",
+    "logo": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS_H45GtdJD0QVwtUDAIoBwwW8-xgFF333UsTXyu8HOIA&s?w=150&auto=format&fit=crop&q=60",
     "api_type": "azuracast",
     "api_url": "https://s1.gntr.net/api/nowplaying/gentara_campursari"
   },
