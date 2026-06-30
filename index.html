@@ -219,11 +219,11 @@
         }
 
         .player-img {  
-            width: calc(100% - 0px); /* 100% dikurangi ruang kiri-kanan 15px + 15px */
-            margin: 0 auto 25px auto; /* auto di kiri-kanan agar posisi gambar presisi di tengah */
-            display: block;           /* wajib block agar fungsi margin auto berjalan */
+            width: calc(100% - 0px); 
+            margin: 0 auto 25px auto; 
+            display: block;           
             aspect-ratio: 1;
-            border-radius: 16px;      /* Sekarang lengkungan 16px akan memotong logo dengan sempurna */
+            border-radius: 16px;      
             object-fit: cover;  
             background: transparent;  
             box-sizing: border-box;  
@@ -346,7 +346,6 @@
 
 <script>
 const WORKER_URL = "https://radstream-api.fadjark-ur.workers.dev"; 
-// Perbaikan Pareto: Jangan gunakan satu tag audio abadi. Kita akan kelola secara dinamis.
 let audio = null; 
 
 const playBtn = document.getElementById('play-master-btn');
@@ -361,7 +360,7 @@ const unicodePause = "❚❚";
 let isPlaying = false; 
 let isStationLoaded = false;
 let currentStationId = ""; 
-let currentStationUrl = ""; // Simpan URL aktif
+let currentStationUrl = ""; 
 let isMetadataView = false;
 
 let currentApiUrl = "";
@@ -369,37 +368,30 @@ let currentApiType = "";
 let metadataPoller = null;
 let stallTimeout = null;
 
-// SINKRONISASI AUDIO DINAMIS (Anti-Lag & Anti-Garbage Buffer)
 function initAudioElement(url) {
-    // 1. Jika ada audio lama berjalan, matikan dan hancurkan total
     if (audio) {
         audio.pause();
         audio.removeAttribute('src');
         audio.load();
-        // Hapus semua event listener lama agar tidak tumpang tindih
-        const oldAudio = audio;
         audio = null;
     }
 
-    // 2. Buat instance baru untuk memastikan memori browser segar (Sangat ampuh untuk iOS Safari)
     audio = new Audio();
-    audio.preload = "none"; // Jangan mendownload agresif di awal demi menghemat bandwidth
+    audio.preload = "none"; 
     audio.volume = volumeSlider.value / 100;
     audio.src = url;
 
-    // 3. PROACTIVE WATCHDOG: Deteksi Kemacetan Lebih Cepat (Dipangkas jadi 2 detik)
     audio.addEventListener('waiting', () => {
         if (!isPlaying) return;
         clearTimeout(stallTimeout);
         
         stallTimeout = setTimeout(() => {
             console.log("Mendeteksi lag, menyinkronkan ulang ke Live Edge...");
-            // Reset senyap tanpa menghentikan status UI
             if (audio && currentStationUrl) {
                 audio.src = currentStationUrl;
                 audio.play().catch(() => {});
             }
-        }, 2000); // 2 detik tanpa data langsung dipulihkan
+        }, 2000); 
     });
 
     audio.addEventListener('playing', () => {
@@ -428,7 +420,6 @@ function renderPlayerUI() {
     }
 }
 
-// Volume controller tetap menggunakan global listener
 volumeSlider.addEventListener('input', function() {
     const value = this.value;
     updateSliderBackground(value);
@@ -440,11 +431,10 @@ function updateSliderBackground(value) {
 }
 updateSliderBackground(100);
 
-// FUNGSI BUKA PLAYER UTAMA
 function openPlayer(id, name, loc, logo, url, apiUrl = '', apiType = 'fallback') {
     isStationLoaded = true;
     currentStationId = id; 
-    currentStationUrl = url; // Simpan URL global
+    currentStationUrl = url; 
     
     currentApiUrl = apiUrl;
     currentApiType = apiType;
@@ -467,7 +457,6 @@ function openPlayer(id, name, loc, logo, url, apiUrl = '', apiType = 'fallback')
     document.getElementById('player-screen').style.display = 'flex';
     document.body.classList.add('player-active');
     
-    // Eksekusi inisialisasi audio segar
     initAudioElement(url);
     
     isPlaying = true;
@@ -478,14 +467,12 @@ function openPlayer(id, name, loc, logo, url, apiUrl = '', apiType = 'fallback')
     });
 }
 
-// TOGGLE PLAY/PAUSE (Sistem "Pause = Destroy Source")
 function togglePlay(event) {
     if (event) event.stopPropagation();
     if (!audio) return;
 
     if (isPlaying) {
         audio.pause();
-        // Buang stream agar tidak menimbun buffer di latar belakang
         audio.removeAttribute('src');
         audio.load();
         isPlaying = false;
@@ -493,7 +480,6 @@ function togglePlay(event) {
     } else {
         isPlaying = true;
         renderPlayerUI();
-        // Isi kembali dengan URL asli saat play ditekan
         audio.src = currentStationUrl;
         audio.play().catch(err => {
             isPlaying = false;
@@ -502,7 +488,6 @@ function togglePlay(event) {
     }
 }
 
-// Fungsi pembantu lainnya tetap sama
 function closePlayer() {
     document.getElementById('player-screen').style.display = 'none';
     document.body.classList.remove('player-active'); 
@@ -529,7 +514,7 @@ function updateLockScreen(name, logo) {
     }
 }
 
-// Mengambil manifest JSON awal
+// RENDER ENGINE - Menggunakan struktur dinamis dari properti JSON baru
 fetch('indonesia.json')
     .then(res => res.json())
     .then(data => {
@@ -538,12 +523,14 @@ fetch('indonesia.json')
         data.forEach(radio => {
             const apiType = radio.api_type || 'fallback';
             const apiUrl = radio.api_url || '';
+            const country = radio.country || 'Indonesia'; // Fallback jika properti tidak ada
+            
             listWadah.innerHTML += `
-                <div class="station-item" onclick="openPlayer('${radio.id}', '${radio.name}', '${radio.city}, ${radio.province}', '${radio.logo}', '${radio.stream_url}', '${apiUrl}', '${apiType}')">
+                <div class="station-item" onclick="openPlayer('${radio.id}', '${radio.name}', '${radio.city}, ${country}', '${radio.logo}', '${radio.stream_url}', '${apiUrl}', '${apiType}')">
                     <img class="station-img" src="${radio.logo}">
                     <div class="station-info">
                         <div class="station-name">${radio.name}</div>
-                        <div class="station-meta">${radio.city}, Indonesia</div>
+                        <div class="station-meta">${radio.city}, ${country}</div>
                         <div class="station-meta" style="color: #3b82f6; font-weight: 500; margin-top:2px;">${radio.fm_frequency}</div>
                     </div>
                 </div>
@@ -551,7 +538,6 @@ fetch('indonesia.json')
         });
     });
 
-// Request Metadata (Tetap sinkron dengan penampung baru)
 async function requestMetadataUpdate() {
     if (!currentApiUrl || currentApiUrl.trim() === "" || currentApiType === "fallback") {
         resetMetadataToDefault();
