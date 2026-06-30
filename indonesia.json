@@ -22,7 +22,7 @@
     "province": "DKI Jakarta",
     "city": "Jakarta",
     "country": "Indonesia",
-    "stream_url": "https://wz.mari.co.id:1936/noice_mustangfm/mustangfm/chunklist_w2146107163.m3u8",
+    "stream_url": "https://radio-proxy.fadjark-ur.workers.dev/?url=https://wz.mari.co.id:1936/noice_mustangfm/mustangfm/chunklist_w2146107163.m3u8",
     "logo": "https://www.mahakax.com/wp-content/uploads/2022/06/logo-mustang.png?w=150&auto=format&fit=crop&q=60",
     "api_type": "icecast",
     "api_url": "https://ic.mari.co.id:8443/status-json.xsl?mount=mustangfm"
@@ -64,7 +64,7 @@
     "province": "DKI Jakarta",
     "city": "Jakarta",
     "country": "Indonesia",
-    "stream_url": "https://wz.mari.co.id:1936/noice_jakfm/jakfm/playlist.m3u8",
+    "stream_url": "https://radio-proxy.fadjark-ur.workers.dev/?url=https://wz.mari.co.id:1936/noice_jakfm/jakfm/playlist.m3u8",
     "logo": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSNWTt3SBsV5ddqV2K_wSngQit5G_TGSRyaqA&s?w=150&auto=format&fit=crop&q=60",
     "api_type": "icecast",
     "api_url": "https://ic.mari.co.id:8443/status-json.xsl?mount=jakfm"
@@ -78,7 +78,7 @@
     "province": "DKI Jakarta",
     "city": "Jakarta",
     "country": "Indonesia",
-    "stream_url": "https://stream.rcs.revma.com/h77wwp48kxcwv",
+    "stream_url": "https://radio-proxy.fadjark-ur.workers.dev/?url=https://stream.rcs.revma.com/h77wwp48kxcwv",
     "logo": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQUCjkV6_FkSdcHh2K7jekMtDWZ1xfxtSA59w&s?w=150&auto=format&fit=crop&q=60",
     "api_type": "prambors",
     "api_url": "https://pramborsfm.com/api/nowplaying"
