@@ -84,6 +84,20 @@
     "api_url": "https://s1.gntr.net/listen/campursari/status-json.xsl?mount=/campursari"
   },
   {
+    "id": "hot-fm",
+    "name": "Hot FM",
+    "fm_frequency": "93.2 FM",
+    "description": "Radio Dangdut dan Musik Indonesia Terhangat",
+    "genre": "Musik and news",
+    "province": "DKI Jakarta",
+    "city": "Jakarta",
+    "country": "Indonesia",
+    "stream_url": "https://wz.mari.co.id:1936/noice_hotfm/hotfm/playlist.m3u8",
+    "logo": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTf_DVkpbt50uIjYdJsKTxe-38PwZKkFViGknByHxOlpA&s=10?w=150&auto=format&fit=crop&q=60",
+    "api_type": "icecast",
+    "api_url": "https://ic.mari.co.id:8443/status-json.xsl?mount=hotfm"
+  },
+  {
     "id": "kis-fm",
     "name": "Kis FM",
     "fm_frequency": "95.1 FM",
@@ -135,8 +149,22 @@
     "city": "Jakarta",
     "country": "Indonesia",
     "stream_url": "https://n07-us.rcs.revma.com/h77wwp48kxcwv/7_etg8v8hh6wbt02/playlist.m3u8",
-    "logo": "https://upload.wikimedia.org/wikipedia/id/d/d1/Prambors.svg?w=150&auto=format&fit=crop&q=60",
+    "logo": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRG8MBP8qwET36HVMSGI5K1FBhDyMvWljBKSPxaYFVnrA&s=10?w=150&auto=format&fit=crop&q=60",
     "api_type": "prambors",
     "api_url": "https://pramborsfm.com/api/nowplaying"
+  },
+  {
+    "id": "most-fm",
+    "name": "Most FM",
+    "fm_frequency": "105.8 FM",
+    "description": "Jakarta's Direct Source for 80s and Greatest Hits",
+    "genre": "Musik and news",
+    "province": "DKI Jakarta",
+    "city": "Jakarta",
+    "country": "Indonesia",
+    "stream_url": "https://wz.mari.co.id:1936/noice_mostfm/mostfm/playlist.m3u8",
+    "logo": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRP6uC61HePPTyKEvaOHLUq7F5-O9xKz2_6hMGJmJKyaQ&s=10?w=150&auto=format&fit=crop&q=60",
+    "api_type": "icecast",
+    "api_url": "https://ic.mari.co.id:8443/status-json.xsl?mount=mostfm"
   }
 ]
