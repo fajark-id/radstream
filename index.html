@@ -53,12 +53,10 @@
             overflow-y: auto;
             padding-bottom: 140px;
             -webkit-overflow-scrolling: touch;
-            /* Sembunyikan scrollbar untuk Firefox dan IE/Edge */
             scrollbar-width: none;
             -ms-overflow-style: none;
         }
         
-        /* Sembunyikan scrollbar untuk Chrome, Safari, dan Opera */
         .station-list-container::-webkit-scrollbar {
             display: none;
         }
@@ -389,6 +387,30 @@ function initAudioElement(url) {
     audio.volume = volumeSlider.value / 100;
     audio.src = url;
 
+    // --- PERBAIKAN UTAMA: DRIVE UI DARI EVENT ASLI AUDIO ---
+    audio.addEventListener('play', () => {
+        isPlaying = true;
+        renderPlayerUI();
+        if (isMetadataView && !metadataPoller) {
+            metadataPoller = setInterval(requestMetadataUpdate, 15000);
+        }
+    });
+
+    audio.addEventListener('playing', () => {
+        isPlaying = true;
+        renderPlayerUI();
+        clearTimeout(stallTimeout);
+    });
+
+    audio.addEventListener('pause', () => {
+        isPlaying = false;
+        renderPlayerUI();
+        if (metadataPoller) {
+            clearInterval(metadataPoller);
+            metadataPoller = null;
+        }
+    });
+
     audio.addEventListener('waiting', () => {
         if (!isPlaying) return;
         clearTimeout(stallTimeout);
@@ -402,15 +424,13 @@ function initAudioElement(url) {
         }, 2000); 
     });
 
-    audio.addEventListener('playing', () => {
-        clearTimeout(stallTimeout);
-    });
-
     audio.addEventListener('error', () => {
         if (isPlaying && audio && currentStationUrl) {
             setTimeout(() => {
-                audio.src = currentStationUrl;
-                audio.play().catch(() => {});
+                if (audio) {
+                    audio.src = currentStationUrl;
+                    audio.play().catch(() => {});
+                }
             }, 1000);
         }
     });
@@ -468,11 +488,9 @@ function openPlayer(id, name, loc, logo, url, apiUrl = '', apiType = 'fallback')
     
     initAudioElement(url);
     
-    isPlaying = true;
-    renderPlayerUI();
+    // Picu pemutaran, biarkan Event Listener yang mengubah status tombol secara akurat
     audio.play().catch(err => {
-        isPlaying = false;
-        renderPlayerUI();
+        console.log("Play blocked/aborted initially, waiting for stream auto-recovery...");
     });
 }
 
@@ -480,31 +498,16 @@ function togglePlay(event) {
     if (event) event.stopPropagation();
     if (!audio) return;
 
-    if (isPlaying) {
+    // Periksa kondisi fisik asli dari element audio, bukan dari variabel manual
+    if (!audio.paused) {
         audio.pause();
         audio.removeAttribute('src');
         audio.load();
-        isPlaying = false;
-        renderPlayerUI();
-        
-        // Hentikan poller saat jeda (menghemat request Worker)
-        if (metadataPoller) {
-            clearInterval(metadataPoller);
-            metadataPoller = null;
-        }
     } else {
-        isPlaying = true;
-        renderPlayerUI();
         audio.src = currentStationUrl;
         audio.play().catch(err => {
-            isPlaying = false;
-            renderPlayerUI();
+            console.log("Playback failed to resume:", err.message);
         });
-        
-        // Aktifkan kembali poller jika sedang melihat tab metadata
-        if (isMetadataView && !metadataPoller) {
-            metadataPoller = setInterval(requestMetadataUpdate, 15000);
-        }
     }
 }
 
@@ -530,12 +533,12 @@ function updateLockScreen(title, logo, artist = 'RadStream', album = 'RadStream'
             album: album,
             artwork: [{ src: logo, sizes: '512x512', type: 'image/png' }]
         });
-        navigator.mediaSession.setActionHandler('play', () => { if (!isPlaying) togglePlay(); });
-        navigator.mediaSession.setActionHandler('pause', () => { if (isPlaying) togglePlay(); });
+        navigator.mediaSession.setActionHandler('play', () => { togglePlay(); });
+        navigator.mediaSession.setActionHandler('pause', () => { togglePlay(); });
     }
 }
 
-// RENDER ENGINE - Menggunakan struktur dinamis dari properti JSON baru
+// RENDER ENGINE
 fetch('indonesia.json')
     .then(res => res.json())
     .then(data => {
@@ -579,7 +582,6 @@ async function requestMetadataUpdate() {
         metaImg.src = finalCover;
         metaImg.style.display = 'block';
 
-        // Sinkronisasi data lagu asli ke Lock Screen HP secara realtime
         updateLockScreen(data.title, finalCover, data.artist, document.getElementById('p-title').textContent);
     } catch (err) {
         resetMetadataToDefault();
@@ -611,7 +613,7 @@ async function toggleMetadataView() {
         await requestMetadataUpdate();
         
         clearInterval(metadataPoller);
-        if (isPlaying) { // Poller hanya aktif jika lagu sedang diputar
+        if (isPlaying) { 
             metadataPoller = setInterval(requestMetadataUpdate, 15000);
         }
     } else {
@@ -621,7 +623,6 @@ async function toggleMetadataView() {
         clearInterval(metadataPoller);
         metadataPoller = null;
         
-        // Kembalikan Lock Screen ke nama radio jika keluar dari tampilan musik
         const radioName = document.getElementById('p-title').textContent;
         const radioLogo = document.getElementById('p-img').src;
         updateLockScreen(radioName, radioLogo);
