@@ -84,6 +84,20 @@
     "api_url": "https://s1.gntr.net/listen/campursari/status-json.xsl?mount=/campursari"
   },
   {
+    "id": "elshinta-fm",
+    "name": "Radio Elshinta",
+    "fm_frequency": "90.0 FM",
+    "description": "News and Talk Radio Station",
+    "genre": "News",
+    "province": "DKI Jakarta",
+    "city": "Jakarta",
+    "country": "Indonesia",
+    "stream_url": "https://stream-ssl.arenastreaming.com:8000/jakarta",
+    "logo": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSse7QBTWUCBA6gyuFxLvJZZFc_uZJ-1fJ1mg0CR_V6Jg&s=10?w=150&auto=format&fit=crop&q=60",
+    "api_type": "icecast",
+    "api_url": "https://stream-ssl.arenastreaming.com:8000/status-json.xsl?mount=jakarta"
+  },
+  {
     "id": "hot-fm",
     "name": "Hot FM",
     "fm_frequency": "93.2 FM",
