@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>RadStream</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.8/hls.min.js"></script>
     <style>
         :root {
             --bg-color: #0b132b;
@@ -353,6 +354,7 @@
 <script>
 const WORKER_URL = "https://radstream-api.fadjark-ur.workers.dev"; 
 let audio = null; 
+let hlsInstance = null; // <--- Tambahkan ini
 
 const playBtn = document.getElementById('play-master-btn');
 const miniPlayBtn = document.getElementById('mini-playpause-btn');
@@ -375,6 +377,12 @@ let metadataPoller = null;
 let stallTimeout = null;
 
 function initAudioElement(url) {
+    // 1. Hancurkan instance HLS lama jika ada
+    if (hlsInstance) {
+        hlsInstance.destroy();
+        hlsInstance = null;
+    }
+
     if (audio) {
         audio.pause();
         audio.removeAttribute('src');
@@ -385,14 +393,10 @@ function initAudioElement(url) {
     audio = new Audio();
     audio.preload = "none"; 
     audio.volume = volumeSlider.value / 100;
-    audio.src = url;
 
-    // --- STATE GUARD: Listener hanya bekerja jika selaras dengan kehendak User ---
+    // --- STATE GUARD (Tetap sama seperti racikan anti-ghosting kita) ---
     audio.addEventListener('play', () => {
-        if (!isPlaying) {
-            audio.pause(); // Blokir jika ini adalah ghost event pasca-pause
-            return;
-        }
+        if (!isPlaying) { audio.pause(); return; }
         renderPlayerUI();
         if (isMetadataView && !metadataPoller) {
             metadataPoller = setInterval(requestMetadataUpdate, 15000);
@@ -400,34 +404,26 @@ function initAudioElement(url) {
     });
 
     audio.addEventListener('playing', () => {
-        if (!isPlaying) {
-            audio.pause();
-            return;
-        }
+        if (!isPlaying) { audio.pause(); return; }
         renderPlayerUI();
         clearTimeout(stallTimeout);
     });
 
     audio.addEventListener('pause', () => {
-        // Hanya ubah state ke false jika terpause secara alami (misal interupsi sistem/headset)
         if (isPlaying) {
             isPlaying = false;
             renderPlayerUI();
-            if (metadataPoller) {
-                clearInterval(metadataPoller);
-                metadataPoller = null;
-            }
+            if (metadataPoller) { clearInterval(metadataPoller); metadataPoller = null; }
         }
     });
 
     audio.addEventListener('waiting', () => {
         if (!isPlaying) return;
         clearTimeout(stallTimeout);
-        
         stallTimeout = setTimeout(() => {
-            console.log("Mendeteksi lag, menyinkronkan ulang ke Live Edge...");
+            console.log("Mendeteksi lag, menyinkronkan ulang...");
             if (audio && isPlaying && currentStationUrl) {
-                audio.src = currentStationUrl;
+                initAudioElement(currentStationUrl);
                 audio.play().catch(() => {});
             }
         }, 2000); 
@@ -437,22 +433,51 @@ function initAudioElement(url) {
         if (isPlaying && audio && currentStationUrl) {
             setTimeout(() => {
                 if (audio && isPlaying) {
-                    audio.src = currentStationUrl;
+                    initAudioElement(currentStationUrl);
                     audio.play().catch(() => {});
                 }
             }, 1000);
         }
     });
 
-    // Tambahan pengaman saat siklus stream dihancurkan mendadak
-    audio.addEventListener('emptied', () => {
-        if (!isPlaying) renderPlayerUI();
-    });
-    audio.addEventListener('abort', () => {
-        if (!isPlaying) renderPlayerUI();
-    });
-}
+    audio.addEventListener('emptied', () => { if (!isPlaying) renderPlayerUI(); });
+    audio.addEventListener('abort', () => { if (!isPlaying) renderPlayerUI(); });
 
+    // --- ENGINE ROUTING (Jalur Pemisahan HLS vs Standar) ---
+    if (url.includes('.m3u8')) {
+        if (Hls.isSupported()) {
+            hlsInstance = new Hls({
+                liveDurationInfinity: true,
+                manifestLoadingMaxRetry: 3,
+                maxBufferLength: 6 // Jaga buffer tipis agar selalu real-time live
+            });
+            hlsInstance.loadSource(url);
+            hlsInstance.attachMedia(audio);
+            
+            // Penanganan error khusus mesin HLS
+            hlsInstance.on(Hls.Events.ERROR, function (event, data) {
+                if (data.fatal && isPlaying) {
+                    if (data.type === Hls.ErrorTypes.NETWORK_ERROR) {
+                        hlsInstance.startLoad();
+                    } else if (data.type === Hls.ErrorTypes.MEDIA_ERROR) {
+                        hlsInstance.recoverMediaError();
+                    } else {
+                        initAudioElement(url);
+                        audio.play().catch(() => {});
+                    }
+                }
+            });
+        } else if (audio.canPlayType('application/vnd.apple.mpegurl')) {
+            // Jalur khusus Safari iOS (iPhone) karena mendukung HLS secara bawaan
+            audio.src = url;
+        } else {
+            alert("Browser tidak mendukung pemutaran format HLS.");
+        }
+    } else {
+        // Jalur untuk format MP3 / AAC / Icecast standar
+        audio.src = url;
+    }
+}
 function renderPlayerUI() {
     if (isPlaying) {
         playBtn.textContent = unicodePause;
@@ -517,9 +542,8 @@ function togglePlay(event) {
     if (event) event.stopPropagation();
     if (!audio) return;
 
-    // Gunakan 'isPlaying' sebagai kehendak mutlak user, bukan mendeteksi fisik audio.paused
     if (isPlaying) {
-        // 1. Matikan state & kunci UI ke ikon Play secepat kilat
+        // Matikan state & amankan UI
         isPlaying = false;
         renderPlayerUI();
         
@@ -529,8 +553,12 @@ function togglePlay(event) {
             metadataPoller = null;
         }
 
-        // 2. Bersihkan engine audio di belakang layar
+        // Hancurkan koneksi audio & engine HLS
         try {
+            if (hlsInstance) {
+                hlsInstance.destroy();
+                hlsInstance = null;
+            }
             audio.pause();
             audio.removeAttribute('src');
             audio.load();
@@ -538,17 +566,16 @@ function togglePlay(event) {
             console.log("Audio dismantled.");
         }
     } else {
-        // Putar kembali stream
+        // Putar kembali stream dengan memanggil ulang engine agar fresh
         isPlaying = true;
         renderPlayerUI();
         
-        audio.src = currentStationUrl;
+        initAudioElement(currentStationUrl);
         audio.play().catch(err => {
             console.log("Playback failed to resume:", err.message);
         });
     }
 }
-
 function closePlayer() {
     document.getElementById('player-screen').style.display = 'none';
     document.body.classList.remove('player-active'); 
