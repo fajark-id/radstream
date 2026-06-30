@@ -387,9 +387,12 @@ function initAudioElement(url) {
     audio.volume = volumeSlider.value / 100;
     audio.src = url;
 
-    // --- PERBAIKAN UTAMA: DRIVE UI DARI EVENT ASLI AUDIO ---
+    // --- STATE GUARD: Listener hanya bekerja jika selaras dengan kehendak User ---
     audio.addEventListener('play', () => {
-        isPlaying = true;
+        if (!isPlaying) {
+            audio.pause(); // Blokir jika ini adalah ghost event pasca-pause
+            return;
+        }
         renderPlayerUI();
         if (isMetadataView && !metadataPoller) {
             metadataPoller = setInterval(requestMetadataUpdate, 15000);
@@ -397,17 +400,23 @@ function initAudioElement(url) {
     });
 
     audio.addEventListener('playing', () => {
-        isPlaying = true;
+        if (!isPlaying) {
+            audio.pause();
+            return;
+        }
         renderPlayerUI();
         clearTimeout(stallTimeout);
     });
 
     audio.addEventListener('pause', () => {
-        isPlaying = false;
-        renderPlayerUI();
-        if (metadataPoller) {
-            clearInterval(metadataPoller);
-            metadataPoller = null;
+        // Hanya ubah state ke false jika terpause secara alami (misal interupsi sistem/headset)
+        if (isPlaying) {
+            isPlaying = false;
+            renderPlayerUI();
+            if (metadataPoller) {
+                clearInterval(metadataPoller);
+                metadataPoller = null;
+            }
         }
     });
 
@@ -417,7 +426,7 @@ function initAudioElement(url) {
         
         stallTimeout = setTimeout(() => {
             console.log("Mendeteksi lag, menyinkronkan ulang ke Live Edge...");
-            if (audio && currentStationUrl) {
+            if (audio && isPlaying && currentStationUrl) {
                 audio.src = currentStationUrl;
                 audio.play().catch(() => {});
             }
@@ -427,12 +436,20 @@ function initAudioElement(url) {
     audio.addEventListener('error', () => {
         if (isPlaying && audio && currentStationUrl) {
             setTimeout(() => {
-                if (audio) {
+                if (audio && isPlaying) {
                     audio.src = currentStationUrl;
                     audio.play().catch(() => {});
                 }
             }, 1000);
         }
+    });
+
+    // Tambahan pengaman saat siklus stream dihancurkan mendadak
+    audio.addEventListener('emptied', () => {
+        if (!isPlaying) renderPlayerUI();
+    });
+    audio.addEventListener('abort', () => {
+        if (!isPlaying) renderPlayerUI();
     });
 }
 
@@ -486,11 +503,13 @@ function openPlayer(id, name, loc, logo, url, apiUrl = '', apiType = 'fallback')
     document.getElementById('player-screen').style.display = 'flex';
     document.body.classList.add('player-active');
     
-    initAudioElement(url);
+    // Set state bermain sebelum audio berjalan agar UI langsung terkunci aman
+    isPlaying = true;
+    renderPlayerUI();
     
-    // Picu pemutaran, biarkan Event Listener yang mengubah status tombol secara akurat
+    initAudioElement(url);
     audio.play().catch(err => {
-        console.log("Play blocked/aborted initially, waiting for stream auto-recovery...");
+        console.log("Menunggu sinkronisasi awal stream...");
     });
 }
 
@@ -498,12 +517,31 @@ function togglePlay(event) {
     if (event) event.stopPropagation();
     if (!audio) return;
 
-    // Periksa kondisi fisik asli dari element audio, bukan dari variabel manual
-    if (!audio.paused) {
-        audio.pause();
-        audio.removeAttribute('src');
-        audio.load();
+    // Gunakan 'isPlaying' sebagai kehendak mutlak user, bukan mendeteksi fisik audio.paused
+    if (isPlaying) {
+        // 1. Matikan state & kunci UI ke ikon Play secepat kilat
+        isPlaying = false;
+        renderPlayerUI();
+        
+        clearTimeout(stallTimeout);
+        if (metadataPoller) {
+            clearInterval(metadataPoller);
+            metadataPoller = null;
+        }
+
+        // 2. Bersihkan engine audio di belakang layar
+        try {
+            audio.pause();
+            audio.removeAttribute('src');
+            audio.load();
+        } catch (e) {
+            console.log("Audio dismantled.");
+        }
     } else {
+        // Putar kembali stream
+        isPlaying = true;
+        renderPlayerUI();
+        
         audio.src = currentStationUrl;
         audio.play().catch(err => {
             console.log("Playback failed to resume:", err.message);
@@ -563,7 +601,7 @@ fetch('indonesia.json')
     });
 
 async function requestMetadataUpdate() {
-    if (!currentApiUrl || currentApiUrl.trim() === "" || currentApiType === "fallback") {
+    if (!currentApiUrl || currentApiUrl.trim() === "" || currentApiType === "fallback" || !isPlaying) {
         resetMetadataToDefault();
         return;
     }
