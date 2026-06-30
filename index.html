@@ -345,57 +345,231 @@
 <audio id="live-audio" preload="none"></audio>
 
 <script>
-    const WORKER_URL = "https://radstream-api.fadjark-ur.workers.dev"; 
-    const audio = document.getElementById('live-audio');
-    const playBtn = document.getElementById('play-master-btn');
-    const miniPlayBtn = document.getElementById('mini-playpause-btn');
-    const volumeSlider = document.getElementById('v-control');
-    const playerCard = document.getElementById('main-player-card');
-    const musicBtn = document.getElementById('music-btn');
+const WORKER_URL = "https://radstream-api.fadjark-ur.workers.dev"; 
+// Perbaikan Pareto: Jangan gunakan satu tag audio abadi. Kita akan kelola secara dinamis.
+let audio = null; 
 
-    const unicodePlay = "▶";
-    const unicodePause = "❚❚";
+const playBtn = document.getElementById('play-master-btn');
+const miniPlayBtn = document.getElementById('mini-playpause-btn');
+const volumeSlider = document.getElementById('v-control');
+const playerCard = document.getElementById('main-player-card');
+const musicBtn = document.getElementById('music-btn');
 
-    let isPlaying = true; 
-    let isStationLoaded = false;
-    let currentStationId = ""; 
-    let isMetadataView = false;
+const unicodePlay = "▶";
+const unicodePause = "❚❚";
+
+let isPlaying = false; 
+let isStationLoaded = false;
+let currentStationId = ""; 
+let currentStationUrl = ""; // Simpan URL aktif
+let isMetadataView = false;
+
+let currentApiUrl = "";
+let currentApiType = "";
+let metadataPoller = null;
+let stallTimeout = null;
+
+// SINKRONISASI AUDIO DINAMIS (Anti-Lag & Anti-Garbage Buffer)
+function initAudioElement(url) {
+    // 1. Jika ada audio lama berjalan, matikan dan hancurkan total
+    if (audio) {
+        audio.pause();
+        audio.removeAttribute('src');
+        audio.load();
+        // Hapus semua event listener lama agar tidak tumpang tindih
+        const oldAudio = audio;
+        audio = null;
+    }
+
+    // 2. Buat instance baru untuk memastikan memori browser segar (Sangat ampuh untuk iOS Safari)
+    audio = new Audio();
+    audio.preload = "none"; // Jangan mendownload agresif di awal demi menghemat bandwidth
+    audio.volume = volumeSlider.value / 100;
+    audio.src = url;
+
+    // 3. PROACTIVE WATCHDOG: Deteksi Kemacetan Lebih Cepat (Dipangkas jadi 2 detik)
+    audio.addEventListener('waiting', () => {
+        if (!isPlaying) return;
+        clearTimeout(stallTimeout);
+        
+        stallTimeout = setTimeout(() => {
+            console.log("Mendeteksi lag, menyinkronkan ulang ke Live Edge...");
+            // Reset senyap tanpa menghentikan status UI
+            if (audio && currentStationUrl) {
+                audio.src = currentStationUrl;
+                audio.play().catch(() => {});
+            }
+        }, 2000); // 2 detik tanpa data langsung dipulihkan
+    });
+
+    audio.addEventListener('playing', () => {
+        clearTimeout(stallTimeout);
+    });
+
+    audio.addEventListener('error', () => {
+        if (isPlaying && audio && currentStationUrl) {
+            setTimeout(() => {
+                audio.src = currentStationUrl;
+                audio.play().catch(() => {});
+            }, 1000);
+        }
+    });
+}
+
+function renderPlayerUI() {
+    if (isPlaying) {
+        playBtn.textContent = unicodePause;
+        playBtn.style.paddingLeft = "0px";
+        miniPlayBtn.textContent = unicodePause;
+    } else {
+        playBtn.textContent = unicodePlay;
+        playBtn.style.paddingLeft = "4px";
+        miniPlayBtn.textContent = unicodePlay;
+    }
+}
+
+// Volume controller tetap menggunakan global listener
+volumeSlider.addEventListener('input', function() {
+    const value = this.value;
+    updateSliderBackground(value);
+    if (audio) audio.volume = value / 100;
+});
+
+function updateSliderBackground(value) {
+    volumeSlider.style.background = `linear-gradient(to right, var(--text-main) 0%, var(--text-main) ${value}%, #475569 ${value}%, #475569 100%)`;
+}
+updateSliderBackground(100);
+
+// FUNGSI BUKA PLAYER UTAMA
+function openPlayer(id, name, loc, logo, url, apiUrl = '', apiType = 'fallback') {
+    isStationLoaded = true;
+    currentStationId = id; 
+    currentStationUrl = url; // Simpan URL global
     
-    // Perbaikan 1: Menyediakan penampung data API global agar tidak ReferenceError
-    let currentApiUrl = "";
-    let currentApiType = "";
-    let metadataPoller = null;
+    currentApiUrl = apiUrl;
+    currentApiType = apiType;
+    
+    isMetadataView = false;
+    clearInterval(metadataPoller);
+    playerCard.classList.remove('view-meta-active');
+    musicBtn.querySelector('svg').classList.remove('svg-active');
 
+    document.getElementById('p-title').textContent = name;
+    document.getElementById('p-sub').textContent = loc;
+    document.getElementById('p-img').src = logo;
+    
+    document.getElementById('mini-station-name').textContent = name;
+    document.getElementById('mini-logo').src = logo;
+    
+    updateLockScreen(name, logo);
+    
+    document.getElementById('mini-player').classList.remove('hidden');
+    document.getElementById('player-screen').style.display = 'flex';
+    document.body.classList.add('player-active');
+    
+    // Eksekusi inisialisasi audio segar
+    initAudioElement(url);
+    
+    isPlaying = true;
+    renderPlayerUI();
+    audio.play().catch(err => {
+        isPlaying = false;
+        renderPlayerUI();
+    });
+}
+
+// TOGGLE PLAY/PAUSE (Sistem "Pause = Destroy Source")
+function togglePlay(event) {
+    if (event) event.stopPropagation();
+    if (!audio) return;
+
+    if (isPlaying) {
+        audio.pause();
+        // Buang stream agar tidak menimbun buffer di latar belakang
+        audio.removeAttribute('src');
+        audio.load();
+        isPlaying = false;
+        renderPlayerUI();
+    } else {
+        isPlaying = true;
+        renderPlayerUI();
+        // Isi kembali dengan URL asli saat play ditekan
+        audio.src = currentStationUrl;
+        audio.play().catch(err => {
+            isPlaying = false;
+            renderPlayerUI();
+        });
+    }
+}
+
+// Fungsi pembantu lainnya tetap sama
+function closePlayer() {
+    document.getElementById('player-screen').style.display = 'none';
+    document.body.classList.remove('player-active'); 
+    if (isStationLoaded) {
+        document.getElementById('mini-player').classList.remove('hidden');
+    }
+}
+
+function openFullPlayerFromMini() {
+    document.getElementById('mini-player').classList.add('hidden');
+    document.getElementById('player-screen').style.display = 'flex';
+    document.body.classList.add('player-active');
+}
+
+function updateLockScreen(name, logo) {
+    if ('mediaSession' in navigator) {
+        navigator.mediaSession.metadata = new MediaMetadata({
+            title: name,
+            artist: 'RadStream',
+            artwork: [{ src: logo, sizes: '512x512', type: 'image/png' }]
+        });
+        navigator.mediaSession.setActionHandler('play', () => { if (!isPlaying) togglePlay(); });
+        navigator.mediaSession.setActionHandler('pause', () => { if (isPlaying) togglePlay(); });
+    }
+}
+
+// Mengambil manifest JSON awal
+fetch('indonesia.json')
+    .then(res => res.json())
+    .then(data => {
+        const listWadah = document.getElementById('list-wadah');
+        listWadah.innerHTML = '';
+        data.forEach(radio => {
+            const apiType = radio.api_type || 'fallback';
+            const apiUrl = radio.api_url || '';
+            listWadah.innerHTML += `
+                <div class="station-item" onclick="openPlayer('${radio.id}', '${radio.name}', '${radio.city}, ${radio.province}', '${radio.logo}', '${radio.stream_url}', '${apiUrl}', '${apiType}')">
+                    <img class="station-img" src="${radio.logo}">
+                    <div class="station-info">
+                        <div class="station-name">${radio.name}</div>
+                        <div class="station-meta">${radio.city}, Indonesia</div>
+                        <div class="station-meta" style="color: #3b82f6; font-weight: 500; margin-top:2px;">${radio.fm_frequency}</div>
+                    </div>
+                </div>
+            `;
+        });
+    });
+
+// Request Metadata (Tetap sinkron dengan penampung baru)
 async function requestMetadataUpdate() {
     if (!currentApiUrl || currentApiUrl.trim() === "" || currentApiType === "fallback") {
         resetMetadataToDefault();
         return;
     }
-
     try {
-        // Menyuntikkan cache-buster timestamp unik agar browser selalu mendownload versi terbaru
         const response = await fetch(`${WORKER_URL}/?api_url=${encodeURIComponent(currentApiUrl)}&api_type=${currentApiType}&_t=${Date.now()}`);
         const data = await response.json();
-
-        // Antisipasi Eror Stasiun Offline
         if (!data || data.title === "Live Streaming" || data.title === "Station Offline") {
             resetMetadataToDefault();
             return;
         }
-
         document.getElementById('meta-title').textContent = data.title;
         document.getElementById('meta-artist').textContent = data.artist;
-        
         const metaImg = document.getElementById('meta-img');
-        if (data.cover && data.cover.trim() !== "") {
-            metaImg.src = data.cover;
-        } else {
-            metaImg.src = document.getElementById('p-img').src;
-        }
+        metaImg.src = (data.cover && data.cover.trim() !== "") ? data.cover : document.getElementById('p-img').src;
         metaImg.style.display = 'block';
-
     } catch (err) {
-        console.error("Gagal memperbarui metadata live:", err);
         resetMetadataToDefault();
     }
 }
@@ -412,15 +586,10 @@ async function toggleMetadataView() {
     if (!isMetadataView) {
         document.getElementById('meta-title').textContent = "Mengambil data...";
         document.getElementById('meta-artist').textContent = "Mohon tunggu...";
-        
         playerCard.classList.add('view-meta-active');
         musicBtn.querySelector('svg').classList.add('svg-active');
         isMetadataView = true;
-
-        // Ambil data pertama saat dibuka
         await requestMetadataUpdate();
-
-        // Solusi Campursari FM: Jalankan perulangan sinkronisasi data berkala (setiap 15 detik)
         clearInterval(metadataPoller);
         metadataPoller = setInterval(requestMetadataUpdate, 15000);
     } else {
@@ -430,137 +599,6 @@ async function toggleMetadataView() {
         clearInterval(metadataPoller);
     }
 }
-
-    function updateLockScreen(name, logo) {
-        if ('mediaSession' in navigator) {
-            navigator.mediaSession.metadata = new MediaMetadata({
-                title: name,
-                artist: 'RadStream',
-                artwork: [{ src: logo, sizes: '512x512', type: 'image/png' }]
-            });
-            navigator.mediaSession.setActionHandler('play', () => { if (!isPlaying) togglePlay(); });
-            navigator.mediaSession.setActionHandler('pause', () => { if (isPlaying) togglePlay(); });
-        }
-    }
-
-    function updateSliderBackground(value) {
-        volumeSlider.style.background = `linear-gradient(to right, var(--text-main) 0%, var(--text-main) ${value}%, #475569 ${value}%, #475569 100%)`;
-    }
-
-    updateSliderBackground(100);
-
-    volumeSlider.addEventListener('input', function() {
-        const value = this.value;
-        updateSliderBackground(value);
-        audio.volume = value / 100;
-    });
-
-    function renderPlayerUI() {
-        if (isPlaying) {
-            playBtn.textContent = unicodePause;
-            playBtn.style.paddingLeft = "0px";
-            miniPlayBtn.textContent = unicodePause;
-        } else {
-            playBtn.textContent = unicodePlay;
-            playBtn.style.paddingLeft = "4px";
-            miniPlayBtn.textContent = unicodePlay;
-        }
-    }
-
-    fetch('indonesia.json')
-        .then(res => res.json())
-        .then(data => {
-            const listWadah = document.getElementById('list-wadah');
-            listWadah.innerHTML = '';
-            data.forEach(radio => {
-                const apiType = radio.api_type || 'fallback';
-                const apiUrl = radio.api_url || '';
-                
-                // Perbaikan 2: Menyertakan binding variable api_url & api_type ke loop HTML click event
-                listWadah.innerHTML += `
-                    <div class="station-item" onclick="openPlayer('${radio.id}', '${radio.name}', '${radio.city}, ${radio.province}', '${radio.logo}', '${radio.stream_url}', '${apiUrl}', '${apiType}')">
-                        <img class="station-img" src="${radio.logo}">
-                        <div class="station-info">
-                            <div class="station-name">${radio.name}</div>
-                            <div class="station-meta">${radio.city}, Indonesia</div>
-                            <div class="station-meta" style="color: #3b82f6; font-weight: 500; margin-top:2px;">${radio.fm_frequency}</div>
-                        </div>
-                    </div>
-                `;
-            });
-        }).catch(err => console.error("Gagal memuat daftar stasiun:", err));
-
-    // Perbaikan 3: Menerima parameter lengkap dari manifest JSON stasiun radio
-    function openPlayer(id, name, loc, logo, url, apiUrl = '', apiType = 'fallback') {
-        isStationLoaded = true;
-        currentStationId = id; 
-        
-        currentApiUrl = apiUrl;
-        currentApiType = apiType;
-        
-        isMetadataView = false;
-        clearInterval(metadataPoller);
-        playerCard.classList.remove('view-meta-active');
-        musicBtn.querySelector('svg').classList.remove('svg-active');
-
-        document.getElementById('p-title').textContent = name;
-        document.getElementById('p-sub').textContent = loc;
-        document.getElementById('p-img').src = logo;
-        
-        document.getElementById('mini-station-name').textContent = name;
-        document.getElementById('mini-logo').src = logo;
-        
-        updateLockScreen(name, logo);
-        
-        document.getElementById('mini-player').classList.remove('hidden');
-        document.getElementById('player-screen').style.display = 'flex';
-        document.body.classList.add('player-active');
-        
-        // Perbaikan 4: Atasi Lag Jeda Audio. Bersihkan sisa buffer stream lama sebelum memuat URL baru.
-        if (audio.src !== url) {
-            audio.pause();
-            audio.removeAttribute('src');
-            audio.load();
-            audio.src = url;
-        }
-        
-        isPlaying = true;
-        renderPlayerUI();
-        audio.play().catch(err => {
-            isPlaying = false;
-            renderPlayerUI();
-        });
-    }
-
-    function closePlayer() {
-        document.getElementById('player-screen').style.display = 'none';
-        document.body.classList.remove('player-active'); 
-        if (isStationLoaded) {
-            document.getElementById('mini-player').classList.remove('hidden');
-        }
-    }
-
-    function openFullPlayerFromMini() {
-        document.getElementById('mini-player').classList.add('hidden');
-        document.getElementById('player-screen').style.display = 'flex';
-        document.body.classList.add('player-active');
-    }
-
-    function togglePlay(event) {
-        if (event) event.stopPropagation();
-        if (isPlaying) {
-            audio.pause();
-            isPlaying = false;
-            renderPlayerUI();
-        } else {
-            isPlaying = true;
-            renderPlayerUI();
-            audio.play().catch(err => {
-                isPlaying = false;
-                renderPlayerUI();
-            });
-        }
-    }
 </script>
 
 </body>
