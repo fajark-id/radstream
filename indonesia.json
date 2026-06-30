@@ -140,6 +140,20 @@
     "api_url": "https://ic.mari.co.id:8443/status-json.xsl?mount=jakfm"
   },
   {
+    "id": "trax-fm",
+    "name": "Trax FM",
+    "fm_frequency": "101.4 FM",
+    "description": "Hits Yang Kamu Suka",
+    "genre": "Pop and R&B",
+    "province": "DKI Jakarta",
+    "city": "Jakarta",
+    "country": "Indonesia",
+    "stream_url": "https://stream.radiojar.com/rrqf78p3bnzuv",
+    "logo": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSaiHfdALV5ubklBb5VEoGyYAVCJbsCs5KH_94RsgxNmg&s=10?w=150&auto=format&fit=crop&q=60",
+    "api_type": "radiojar",
+    "api_url": "https://www.radiojar.com/api/stations/rrqf78p3bnzuv/now_playing/"
+  },
+  {
     "id": "prambors-fm",
     "name": "Prambors FM",
     "fm_frequency": "102.2 FM",
