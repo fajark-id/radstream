@@ -24,8 +24,8 @@
     "country": "Indonesia",
     "stream_url": "https://wz.mari.co.id:1936/noice_jakfm/jakfm/chunklist_w1367887075.m3u8",
     "logo": "https://www.mahakax.com/wp-content/uploads/2022/06/logo-mustang.png?w=150&auto=format&fit=crop&q=60",
-    "api_type": "fallback",
-    "api_url": ""
+    "api_type": "icecast",
+    "api_url": "https://ic.mari.co.id:8443/status-json.xsl?mount=mustangfm"
   },
   {
     "id": "gentara_campursari",
@@ -53,7 +53,7 @@
     "stream_url": "https://radio-proxy.fadjark-ur.workers.dev/?url=https://ic.mari.co.id:8443/genfm",
     "logo": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRowqa5EK6EHniD5t6Ul9lKBd0_NVa4sm7ETw&s?w=150&auto=format&fit=crop&q=60",
     "api_type": "icecast",
-    "api_url": "https://ic.mari.co.id:8443/status-json.xsl"
+    "api_url": "https://ic.mari.co.id:8443/status-json.xsl?mount=genfm"
   },
   {
     "id": "jak-fm",
@@ -66,8 +66,8 @@
     "country": "Indonesia",
     "stream_url": "https://wz.mari.co.id:1936/noice_jakfm/jakfm/playlist.m3u8",
     "logo": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSNWTt3SBsV5ddqV2K_wSngQit5G_TGSRyaqA&s?w=150&auto=format&fit=crop&q=60",
-    "api_type": "fallback",
-    "api_url": ""
+    "api_type": "icecast",
+    "api_url": "https://ic.mari.co.id:8443/status-json.xsl?mount=jakfm"
   },
   {
     "id": "prambors-fm",
