@@ -28,6 +28,20 @@
     "api_url": ""
   },
   {
+    "id": "sahara-kendal",
+    "name": "Radio Sahara FM",
+    "fm_frequency": "106.4 FM",
+    "description": "Radio Sahara FM Kendal",
+    "genre": "Dangdut / Pop",
+    "province": "Jawa Tengah",
+    "city": "Kendal",
+    "country": "Indonesia",
+    "stream_url": "https://pu.klikhost.com/proxy/pungki/live",
+    "logo": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ3mbWF4N86tr6pieMsLFa4NTskM-W7iNzeAvIox8764Q&s=10?w=150&auto=format&fit=crop&q=60",
+    "api_type": "icecast",
+    "api_url": "https://pu.klikhost.com/proxy/pungki/status-json.xsl"
+  },
+  {
     "id": "880-mustang-fm-jakarta",
     "name": "Mustang FM",
     "fm_frequency": "88.0  FM",
