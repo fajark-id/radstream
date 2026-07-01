@@ -372,10 +372,8 @@ let isMetadataView = false;
 let currentApiUrl = "";
 let currentApiType = "";
 let metadataPoller = null;
-let stallTimeout = null;
 
 function initAudioElement(url) {
-    // 1. Hancurkan instance HLS lama jika ada
     if (hlsInstance) {
         hlsInstance.destroy();
         hlsInstance = null;
@@ -389,12 +387,10 @@ function initAudioElement(url) {
     }
 
     audio = new Audio();
-    audio.preload = "none"; 
+    audio.preload = "auto"; 
     audio.volume = volumeSlider.value / 100;
 
-    // --- STATE GUARD ---
     audio.addEventListener('play', () => {
-        if (!isPlaying) { audio.pause(); return; }
         renderPlayerUI();
         if (isMetadataView && !metadataPoller) {
             metadataPoller = setInterval(requestMetadataUpdate, 15000);
@@ -402,78 +398,58 @@ function initAudioElement(url) {
     });
 
     audio.addEventListener('playing', () => {
-        if (!isPlaying) { audio.pause(); return; }
         renderPlayerUI();
-        clearTimeout(stallTimeout);
     });
 
     audio.addEventListener('pause', () => {
-        if (isPlaying) {
-            isPlaying = false;
-            renderPlayerUI();
-            if (metadataPoller) { clearInterval(metadataPoller); metadataPoller = null; }
-        }
+        isPlaying = false;
+        renderPlayerUI();
+        if (metadataPoller) { clearInterval(metadataPoller); metadataPoller = null; }
     });
 
+    // PENTING: Jangan reload manual di 'waiting', biarkan HLS yang menangani buffer
     audio.addEventListener('waiting', () => {
-        if (!isPlaying) return;
-        clearTimeout(stallTimeout);
-        // Perbaikan: Diubah ke 8000ms (8 detik) untuk toleransi lag
-        stallTimeout = setTimeout(() => {
-            console.log("Mendeteksi lag, menyinkronkan ulang...");
-            if (audio && isPlaying && currentStationUrl) {
-                initAudioElement(currentStationUrl);
-                audio.play().catch(() => {});
-            }
-        }, 5000); 
+        console.log("Audio sedang buffering (menunggu data)...");
     });
 
-    audio.addEventListener('error', () => {
-        if (isPlaying && audio && currentStationUrl) {
-            setTimeout(() => {
-                if (audio && isPlaying) {
-                    initAudioElement(currentStationUrl);
-                    audio.play().catch(() => {});
-                }
-            }, 1000);
-        }
+    audio.addEventListener('error', (e) => {
+        console.error("Audio Error:", e);
     });
-
-    audio.addEventListener('emptied', () => { if (!isPlaying) renderPlayerUI(); });
-    audio.addEventListener('abort', () => { if (!isPlaying) renderPlayerUI(); });
 
     // --- ENGINE ROUTING ---
     if (url.includes('.m3u8') || url.includes('revma.com')) {
         if (Hls.isSupported()) {
             hlsInstance = new Hls({
-                liveDurationInfinity: true,
-                manifestLoadingMaxRetry: 3,
-                maxBufferLength: 6 // Jaga buffer tipis agar selalu real-time live
+                liveSyncDurationCount: 3,
+                maxBufferLength: 30, // Ditingkatkan agar lebih stabil
+                maxMaxBufferLength: 60,
+                fragLoadingRetryDelay: 1000,
+                fragLoadingMaxRetry: 5
             });
             hlsInstance.loadSource(url);
             hlsInstance.attachMedia(audio);
             
-            // Penanganan error khusus mesin HLS
             hlsInstance.on(Hls.Events.ERROR, function (event, data) {
-                if (data.fatal && isPlaying) {
-                    if (data.type === Hls.ErrorTypes.NETWORK_ERROR) {
-                        hlsInstance.startLoad();
-                    } else if (data.type === Hls.ErrorTypes.MEDIA_ERROR) {
-                        hlsInstance.recoverMediaError();
-                    } else {
-                        initAudioElement(url);
-                        audio.play().catch(() => {});
+                if (data.fatal) {
+                    switch(data.type) {
+                        case Hls.ErrorTypes.NETWORK_ERROR:
+                            console.log("Network error, trying to recover...");
+                            hlsInstance.startLoad();
+                            break;
+                        case Hls.ErrorTypes.MEDIA_ERROR:
+                            console.log("Media error, recovering...");
+                            hlsInstance.recoverMediaError();
+                            break;
+                        default:
+                            initAudioElement(url); // Reset total jika fatal
+                            break;
                     }
                 }
             });
         } else if (audio.canPlayType('application/vnd.apple.mpegurl')) {
-            // Jalur khusus Safari iOS (iPhone) karena mendukung HLS secara bawaan
             audio.src = url;
-        } else {
-            alert("Browser tidak mendukung pemutaran format HLS.");
         }
     } else {
-        // Jalur untuk format MP3 / AAC / Icecast standar
         audio.src = url;
     }
 }
@@ -481,11 +457,9 @@ function initAudioElement(url) {
 function renderPlayerUI() {
     if (isPlaying) {
         playBtn.textContent = unicodePause;
-        playBtn.style.paddingLeft = "0px";
         miniPlayBtn.textContent = unicodePause;
     } else {
         playBtn.textContent = unicodePlay;
-        playBtn.style.paddingLeft = "4px";
         miniPlayBtn.textContent = unicodePlay;
     }
 }
@@ -505,7 +479,6 @@ function openPlayer(id, name, loc, logo, url, apiUrl = '', apiType = 'fallback')
     isStationLoaded = true;
     currentStationId = id; 
     currentStationUrl = url; 
-    
     currentApiUrl = apiUrl;
     currentApiType = apiType;
     
@@ -518,7 +491,6 @@ function openPlayer(id, name, loc, logo, url, apiUrl = '', apiType = 'fallback')
     document.getElementById('p-title').textContent = name;
     document.getElementById('p-sub').textContent = loc;
     document.getElementById('p-img').src = logo;
-    
     document.getElementById('mini-station-name').textContent = name;
     document.getElementById('mini-logo').src = logo;
     
@@ -528,14 +500,9 @@ function openPlayer(id, name, loc, logo, url, apiUrl = '', apiType = 'fallback')
     document.getElementById('player-screen').style.display = 'flex';
     document.body.classList.add('player-active');
     
-    // Set state bermain sebelum audio berjalan agar UI langsung terkunci aman
     isPlaying = true;
-    renderPlayerUI();
-    
     initAudioElement(url);
-    audio.play().catch(err => {
-        console.log("Menunggu sinkronisasi awal stream...");
-    });
+    audio.play().catch(err => console.log("Auto-play blocked"));
 }
 
 function togglePlay(event) {
@@ -543,38 +510,13 @@ function togglePlay(event) {
     if (!audio) return;
 
     if (isPlaying) {
-        // Matikan state & amankan UI
         isPlaying = false;
-        renderPlayerUI();
-        
-        clearTimeout(stallTimeout);
-        if (metadataPoller) {
-            clearInterval(metadataPoller);
-            metadataPoller = null;
-        }
-
-        // Hancurkan koneksi audio & engine HLS
-        try {
-            if (hlsInstance) {
-                hlsInstance.destroy();
-                hlsInstance = null;
-            }
-            audio.pause();
-            audio.removeAttribute('src');
-            audio.load();
-        } catch (e) {
-            console.log("Audio dismantled.");
-        }
+        audio.pause();
     } else {
-        // Putar kembali stream dengan memanggil ulang engine agar fresh
         isPlaying = true;
-        renderPlayerUI();
-        
-        initAudioElement(currentStationUrl);
-        audio.play().catch(err => {
-            console.log("Playback failed to resume:", err.message);
-        });
+        audio.play().catch(err => console.log("Play failed", err));
     }
+    renderPlayerUI();
 }
 
 function closePlayer() {
@@ -604,23 +546,18 @@ function updateLockScreen(title, logo, artist = 'RadStream', album = 'RadStream'
     }
 }
 
-// RENDER ENGINE
 fetch('indonesia.json')
     .then(res => res.json())
     .then(data => {
         const listWadah = document.getElementById('list-wadah');
         listWadah.innerHTML = '';
         data.forEach(radio => {
-            const apiType = radio.api_type || 'fallback';
-            const apiUrl = radio.api_url || '';
-            const country = radio.country || 'Indonesia';
-            
             listWadah.innerHTML += `
-                <div class="station-item" onclick="openPlayer('${radio.id}', '${radio.name}', '${radio.city}, ${country}', '${radio.logo}', '${radio.stream_url}', '${apiUrl}', '${apiType}')">
+                <div class="station-item" onclick="openPlayer('${radio.id}', '${radio.name}', '${radio.city}, ${radio.country}', '${radio.logo}', '${radio.stream_url}', '${radio.api_url || ''}', '${radio.api_type || 'fallback'}')">
                     <img class="station-img" src="${radio.logo}">
                     <div class="station-info">
                         <div class="station-name">${radio.name}</div>
-                        <div class="station-meta">${radio.city}, ${country}</div>
+                        <div class="station-meta">${radio.city}, ${radio.country}</div>
                         <div class="station-meta" style="color: #3b82f6; font-weight: 500; margin-top:2px;">${radio.fm_frequency}</div>
                     </div>
                 </div>
@@ -642,12 +579,10 @@ async function requestMetadataUpdate() {
         }
         document.getElementById('meta-title').textContent = data.title;
         document.getElementById('meta-artist').textContent = data.artist;
-        
         const metaImg = document.getElementById('meta-img');
         const finalCover = (data.cover && data.cover.trim() !== "") ? data.cover : document.getElementById('p-img').src;
         metaImg.src = finalCover;
         metaImg.style.display = 'block';
-
         updateLockScreen(data.title, finalCover, data.artist, document.getElementById('p-title').textContent);
     } catch (err) {
         resetMetadataToDefault();
@@ -658,15 +593,11 @@ function resetMetadataToDefault() {
     const metaImg = document.getElementById('meta-img');
     const radioName = document.getElementById('p-title').textContent;
     const radioLogo = document.getElementById('p-img').src;
-
     document.getElementById('meta-title').textContent = radioName; 
     document.getElementById('meta-artist').textContent = "Sedang Mengudara Live"; 
-    metaImg.src = radioLogo; 
+    metaImg.src = radioLogo;
     metaImg.style.display = 'block';
-
-    if (isStationLoaded) {
-        updateLockScreen(radioName, radioLogo, 'RadStream', 'Live Stream');
-    }
+    if (isStationLoaded) updateLockScreen(radioName, radioLogo, 'RadStream', 'Live Stream');
 }
 
 async function toggleMetadataView() {
@@ -677,21 +608,13 @@ async function toggleMetadataView() {
         musicBtn.querySelector('svg').classList.add('svg-active');
         isMetadataView = true;
         await requestMetadataUpdate();
-        
-        clearInterval(metadataPoller);
-        if (isPlaying) { 
-            metadataPoller = setInterval(requestMetadataUpdate, 15000);
-        }
+        metadataPoller = setInterval(requestMetadataUpdate, 15000);
     } else {
         playerCard.classList.remove('view-meta-active');
         musicBtn.querySelector('svg').classList.remove('svg-active');
         isMetadataView = false;
         clearInterval(metadataPoller);
         metadataPoller = null;
-        
-        const radioName = document.getElementById('p-title').textContent;
-        const radioLogo = document.getElementById('p-img').src;
-        updateLockScreen(radioName, radioLogo);
     }
 }
 </script>
