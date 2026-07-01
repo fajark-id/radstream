@@ -287,6 +287,11 @@
         #view-metadata { display: none; }
         .view-meta-active #view-station { display: none; }
         .view-meta-active #view-metadata { display: block; }
+
+        .ticker-wrapper { overflow: hidden; white-space: nowrap; width: 100%; }
+        .ticker-content { display: inline-block; transition: transform 0.3s; }
+        .ticker-animate { padding-left: 100%; animation: scroll-text 12s linear infinite; }
+        @keyframes scroll-text { 0% { transform: translateX(0); } 100% { transform: translateX(-100%); } }
     </style>
 </head>
 <body>
@@ -327,8 +332,12 @@
 
         <div id="view-metadata" class="view-content">
             <img class="player-img" id="meta-img" src="" alt="Metadata Cover" onclick="toggleMetadataView()">
-            <div class="player-title" id="meta-title">Lagu</div>
-            <div class="player-sub" id="meta-artist">Artis</div>
+            <div class="ticker-wrapper">
+                <div id="meta-title" class="ticker-content">Lagu</div>
+            </div>
+            <div class="ticker-wrapper">
+                <div id="meta-artist" class="ticker-content">Artis</div>
+            </div>
         </div>
         
         <div class="volume-container">
@@ -558,6 +567,8 @@ async function requestMetadataUpdate() {
         }
         document.getElementById('meta-title').textContent = data.title;
         document.getElementById('meta-artist').textContent = data.artist;
+        applyTicker('meta-title');
+        applyTicker('meta-artist');
         const metaImg = document.getElementById('meta-img');
         const finalCover = (data.cover && data.cover.trim() !== "") ? data.cover : document.getElementById('p-img').src;
         metaImg.src = finalCover;
@@ -596,6 +607,20 @@ async function toggleMetadataView() {
         metadataPoller = null;
     }
 }
+
+function applyTicker(elementId) {
+    const el = document.getElementById(elementId);
+    const wrapper = el.parentElement;
+    el.classList.remove('ticker-animate');
+    
+    // Paksa browser hitung ulang lebar
+    void el.offsetWidth;
+    
+    // Jika teks lebih lebar dari kontainer, jalankan animasi
+    if (el.scrollWidth > wrapper.clientWidth) {
+        el.classList.add('ticker-animate');
+    }
+}    
 </script>
 
 </body>
