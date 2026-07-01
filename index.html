@@ -228,7 +228,7 @@
         .player-img {  
             width: calc(100% - 0px); 
             margin: 0 auto 25px auto; 
-            display: block;           
+            display: block;            
             aspect-ratio: 1;
             border-radius: 16px;      
             object-fit: cover;  
@@ -418,13 +418,14 @@ function initAudioElement(url) {
     audio.addEventListener('waiting', () => {
         if (!isPlaying) return;
         clearTimeout(stallTimeout);
+        // Perbaikan: Diubah ke 8000ms (8 detik) untuk toleransi lag
         stallTimeout = setTimeout(() => {
             console.log("Mendeteksi lag, menyinkronkan ulang...");
             if (audio && isPlaying && currentStationUrl) {
                 initAudioElement(currentStationUrl);
                 audio.play().catch(() => {});
             }
-        }, 2000); 
+        }, 5000); 
     });
 
     audio.addEventListener('error', () => {
@@ -441,7 +442,7 @@ function initAudioElement(url) {
     audio.addEventListener('emptied', () => { if (!isPlaying) renderPlayerUI(); });
     audio.addEventListener('abort', () => { if (!isPlaying) renderPlayerUI(); });
 
-    // --- ENGINE ROUTING (Tanda kurung kondisional diperbaiki di sini) ---
+    // --- ENGINE ROUTING ---
     if (url.includes('.m3u8') || url.includes('revma.com')) {
         if (Hls.isSupported()) {
             hlsInstance = new Hls({
