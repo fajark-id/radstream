@@ -374,6 +374,7 @@ let currentApiType = "";
 let metadataPoller = null;
 
 function initAudioElement(url) {
+    // 1. Bersihkan instance sebelumnya
     if (hlsInstance) {
         hlsInstance.destroy();
         hlsInstance = null;
@@ -386,70 +387,47 @@ function initAudioElement(url) {
         audio = null;
     }
 
+    // 2. Buat objek audio baru
     audio = new Audio();
     audio.preload = "auto"; 
     audio.volume = volumeSlider.value / 100;
 
-    audio.addEventListener('play', () => {
-        renderPlayerUI();
-        if (isMetadataView && !metadataPoller) {
-            metadataPoller = setInterval(requestMetadataUpdate, 15000);
-        }
+    // Tambahkan Event Listeners
+    audio.addEventListener('play', () => { renderPlayerUI(); });
+    audio.addEventListener('playing', () => { renderPlayerUI(); });
+    audio.addEventListener('pause', () => { 
+        isPlaying = false; 
+        renderPlayerUI(); 
+        if (metadataPoller) { clearInterval(metadataPoller); metadataPoller = null; } 
     });
 
-    audio.addEventListener('playing', () => {
-        renderPlayerUI();
-    });
-
-    audio.addEventListener('pause', () => {
-        isPlaying = false;
-        renderPlayerUI();
-        if (metadataPoller) { clearInterval(metadataPoller); metadataPoller = null; }
-    });
-
-    // PENTING: Jangan reload manual di 'waiting', biarkan HLS yang menangani buffer
-    audio.addEventListener('waiting', () => {
-        console.log("Audio sedang buffering (menunggu data)...");
-    });
-
-    audio.addEventListener('error', (e) => {
-        console.error("Audio Error:", e);
-    });
-
-    // --- ENGINE ROUTING ---
-    if (url.includes('.m3u8') || url.includes('revma.com')) {
-        if (Hls.isSupported()) {
-            hlsInstance = new Hls({
-                liveSyncDurationCount: 3,
-                maxBufferLength: 30, // Ditingkatkan agar lebih stabil
-                maxMaxBufferLength: 60,
-                fragLoadingRetryDelay: 1000,
-                fragLoadingMaxRetry: 5
-            });
-            hlsInstance.loadSource(url);
-            hlsInstance.attachMedia(audio);
-            
-            hlsInstance.on(Hls.Events.ERROR, function (event, data) {
-                if (data.fatal) {
-                    switch(data.type) {
-                        case Hls.ErrorTypes.NETWORK_ERROR:
-                            console.log("Network error, trying to recover...");
-                            hlsInstance.startLoad();
-                            break;
-                        case Hls.ErrorTypes.MEDIA_ERROR:
-                            console.log("Media error, recovering...");
-                            hlsInstance.recoverMediaError();
-                            break;
-                        default:
-                            initAudioElement(url); // Reset total jika fatal
-                            break;
-                    }
+    // 3. Engine Routing (HLS atau Native)
+    // Gunakan HLS hanya jika URL secara eksplisit mengandung .m3u8
+    if (url.toLowerCase().includes('.m3u8') && Hls.isSupported()) {
+        hlsInstance = new Hls({
+            liveSyncDurationCount: 3,
+            maxBufferLength: 30,
+            maxMaxBufferLength: 60,
+            fragLoadingRetryDelay: 1000,
+            fragLoadingMaxRetry: 5
+        });
+        hlsInstance.loadSource(url);
+        hlsInstance.attachMedia(audio);
+        
+        hlsInstance.on(Hls.Events.ERROR, function (event, data) {
+            if (data.fatal) {
+                switch(data.type) {
+                    case Hls.ErrorTypes.NETWORK_ERROR:
+                        hlsInstance.startLoad();
+                        break;
+                    default:
+                        initAudioElement(url); // Reset jika error fatal
+                        break;
                 }
-            });
-        } else if (audio.canPlayType('application/vnd.apple.mpegurl')) {
-            audio.src = url;
-        }
+            }
+        });
     } else {
+        // Gunakan pemutar native untuk stream biasa (termasuk proxy tanpa .m3u8)
         audio.src = url;
     }
 }
