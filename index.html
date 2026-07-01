@@ -374,8 +374,15 @@ let currentApiUrl = "";
 let currentApiType = "";
 let metadataPoller = null;
 
+// Fungsi Helper untuk Title Case
+function toTitleCase(str) {
+    if (!str) return "";
+    return str.toLowerCase().split(' ').map(function(word) {
+        return word.charAt(0).toUpperCase() + word.slice(1);
+    }).join(' ');
+}
+
 function initAudioElement(url) {
-    // 1. Bersihkan instance sebelumnya
     if (hlsInstance) {
         hlsInstance.destroy();
         hlsInstance = null;
@@ -388,12 +395,10 @@ function initAudioElement(url) {
         audio = null;
     }
 
-    // 2. Buat objek audio baru
     audio = new Audio();
     audio.preload = "auto"; 
     audio.volume = volumeSlider.value / 100;
 
-    // Tambahkan Event Listeners
     audio.addEventListener('play', () => { renderPlayerUI(); });
     audio.addEventListener('playing', () => { renderPlayerUI(); });
     audio.addEventListener('pause', () => { 
@@ -402,8 +407,6 @@ function initAudioElement(url) {
         if (metadataPoller) { clearInterval(metadataPoller); metadataPoller = null; } 
     });
 
-    // 3. Engine Routing (HLS atau Native)
-    // Gunakan HLS hanya jika URL secara eksplisit mengandung .m3u8
     if (url.toLowerCase().includes('.m3u8') && Hls.isSupported()) {
         hlsInstance = new Hls({
             liveSyncDurationCount: 3,
@@ -422,13 +425,12 @@ function initAudioElement(url) {
                         hlsInstance.startLoad();
                         break;
                     default:
-                        initAudioElement(url); // Reset jika error fatal
+                        initAudioElement(url); 
                         break;
                 }
             }
         });
     } else {
-        // Gunakan pemutar native untuk stream biasa (termasuk proxy tanpa .m3u8)
         audio.src = url;
     }
 }
@@ -556,8 +558,10 @@ async function requestMetadataUpdate() {
             resetMetadataToDefault();
             return;
         }
-        document.getElementById('meta-title').textContent = data.title;
-        document.getElementById('meta-artist').textContent = data.artist;
+        // Menggunakan toTitleCase di sini
+        document.getElementById('meta-title').textContent = toTitleCase(data.title);
+        document.getElementById('meta-artist').textContent = toTitleCase(data.artist);
+        
         const metaImg = document.getElementById('meta-img');
         const finalCover = (data.cover && data.cover.trim() !== "") ? data.cover : document.getElementById('p-img').src;
         metaImg.src = finalCover;
